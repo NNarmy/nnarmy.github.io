@@ -36,6 +36,26 @@ contract Movimiento is ERC721, EIP712, Ownable {
     error InvitacionVencida();
     error FirmaInvalida();
     error NumeroInvalido();
+    error Pausado();
+    error LimiteDiario();
+    error SinRecuperacion();
+    error AunNo(uint256 listo);
+    error NoAutorizado();
+    error LargosDistintos();
+
+    event Pausa(bool pausado);
+    event RecuperacionPropuesta(uint256 indexed numero, address nuevaCuenta, uint256 listo);
+    event RecuperacionCancelada(uint256 indexed numero);
+    event Recuperado(uint256 indexed numero);
+
+    uint256 public constant ESPERA_RECUPERACION = 48 hours;
+    /// Contrato anterior si este es un reemplazo (0 si es el primero)
+    address public immutable contratoAnterior;
+    bool public pausado;
+    uint256 public limiteDiario = 5;
+    mapping(uint256 => mapping(uint256 => uint256)) public invitacionesDelDia; // numero => dia => usadas
+    struct Recuperacion { address nuevaCuenta; uint256 listo; }
+    mapping(uint256 => Recuperacion) public recuperaciones;
 
     uint256 public siguienteNumero;     // proximo numero a probar para nuevos miembros
     uint256 private _total;
@@ -43,14 +63,16 @@ contract Movimiento is ERC721, EIP712, Ownable {
     mapping(bytes32 => bool) public invitacionUsada;
     /// Numero de cada billetera (0 si no es miembro)
     mapping(address => uint256) public numeroDe;
+    bool private _recuperando;
 
-    constructor(address guardian, uint256 primerNumero)
+    constructor(address guardian, uint256 primerNumero, address anterior)
         ERC721("Movimiento sin nombre", "MSN")
         EIP712("Movimiento", "1")
         Ownable(guardian)
     {
         if (primerNumero == 0) revert NumeroInvalido();
         siguienteNumero = primerNumero;
+        contratoAnterior = anterior;
     }
 
     // ---------- Ingreso por invitacion ----------
@@ -58,12 +80,15 @@ contract Movimiento is ERC721, EIP712, Ownable {
     /// @notice Reclama el siguiente numero libre con una invitacion firmada por un miembro.
     ///         Cualquiera puede enviar la transaccion (por ejemplo un patrocinador que paga el gas).
     function unirse(Invitacion calldata inv, bytes calldata firma, address nuevo) external returns (uint256 numero) {
+        if (pausado) revert Pausado();
         if (block.timestamp > inv.vence) revert InvitacionVencida();
         bytes32 digest = hashInvitacion(inv);
         if (invitacionUsada[digest]) revert InvitacionUsada();
         address firmante = ECDSA.recover(digest, firma);
         if (_ownerOf(inv.invitador) != firmante || firmante == address(0)) revert FirmaInvalida();
         invitacionUsada[digest] = true;
+        uint256 dia = block.timestamp / 1 days;
+        if (++invitacionesDelDia[inv.invitador][dia] > limiteDiario) revert LimiteDiario();
 
         numero = _siguienteLibre();
         _registrar(nuevo, numero);
@@ -82,10 +107,47 @@ contract Movimiento is ERC721, EIP712, Ownable {
         _registrar(cuenta, numero);
     }
 
-    /// @notice Si alguien pierde su billetera, el guardian mueve su numero a una nueva. Nunca duplica.
-    function recuperar(uint256 numero, address nuevaCuenta) external onlyOwner {
+    /// @notice Importa muchos miembros a la vez (para migrar desde un contrato anterior).
+    function importar(address[] calldata cuentas, uint256[] calldata nums) external onlyOwner {
+        if (cuentas.length != nums.length) revert LargosDistintos();
+        for (uint256 i = 0; i < cuentas.length; i++) {
+            if (nums[i] == 0) revert NumeroInvalido();
+            _registrar(cuentas[i], nums[i]);
+        }
+    }
+
+    /// @notice Freno de emergencia: detiene las invitaciones.
+    function pausar(bool p) external onlyOwner { pausado = p; emit Pausa(p); }
+
+    function cambiarLimiteDiario(uint256 limite) external onlyOwner { limiteDiario = limite; }
+
+    /// @notice Si alguien pierde su billetera, el guardian propone moverle el numero a una nueva.
+    ///         Se aplica despues de 48 horas; mientras tanto el dueno actual puede cancelarlo.
+    function proponerRecuperacion(uint256 numero, address nuevaCuenta) external onlyOwner {
+        _requireOwned(numero);
         if (balanceOf(nuevaCuenta) != 0) revert YaEsMiembro(nuevaCuenta);
-        _update(nuevaCuenta, numero, address(0)); // revierte si el numero no existe
+        uint256 listo = block.timestamp + ESPERA_RECUPERACION;
+        recuperaciones[numero] = Recuperacion(nuevaCuenta, listo);
+        emit RecuperacionPropuesta(numero, nuevaCuenta, listo);
+    }
+
+    function cancelarRecuperacion(uint256 numero) external {
+        if (msg.sender != ownerOf(numero) && msg.sender != owner()) revert NoAutorizado();
+        delete recuperaciones[numero];
+        emit RecuperacionCancelada(numero);
+    }
+
+    /// @notice Cualquiera puede ejecutarla cuando pasaron las 48 horas.
+    function ejecutarRecuperacion(uint256 numero) external {
+        Recuperacion memory r = recuperaciones[numero];
+        if (r.listo == 0) revert SinRecuperacion();
+        if (block.timestamp < r.listo) revert AunNo(r.listo);
+        if (balanceOf(r.nuevaCuenta) != 0) revert YaEsMiembro(r.nuevaCuenta);
+        delete recuperaciones[numero];
+        _recuperando = true;
+        _update(r.nuevaCuenta, numero, address(0));
+        _recuperando = false;
+        emit Recuperado(numero);
     }
 
     // ---------- Lectura publica ----------
@@ -145,7 +207,7 @@ contract Movimiento is ERC721, EIP712, Ownable {
     /// Bloquea toda transferencia. Solo se permite crear (mint) o la recuperacion del guardian.
     function _update(address to, uint256 tokenId, address auth) internal override returns (address) {
         address from = _ownerOf(tokenId);
-        if (from != address(0) && to != address(0) && !(auth == address(0) && msg.sender == owner())) {
+        if (from != address(0) && to != address(0) && !_recuperando) {
             revert Intransferible();
         }
         if (from != address(0)) delete numeroDe[from];

@@ -14,7 +14,7 @@ describe("Movimiento", () => {
   let c, guardian, ian, a, b, x, relayer, vence;
   beforeEach(async () => {
     [guardian, ian, a, b, x, relayer] = await ethers.getSigners();
-    c = await (await ethers.getContractFactory("Movimiento")).deploy(guardian.address, 1314);
+    c = await (await ethers.getContractFactory("Movimiento")).deploy(guardian.address, 1314, ethers.ZeroAddress);
     await c.registrarFundador(ian.address, 1313);
     vence = (await time.latest()) + 86400;
   });
@@ -65,14 +65,53 @@ describe("Movimiento", () => {
     await expect(c.connect(ian).setApprovalForAll(a.address, true)).to.be.revertedWithCustomError(c, "Intransferible");
   });
 
-  it("el guardian puede recuperar un numero a una billetera nueva sin duplicarlo", async () => {
-    await c.recuperar(1313, b.address);
+  it("recuperar un numero tarda 48 horas y el dueno puede cancelarlo", async () => {
+    await c.proponerRecuperacion(1313, b.address);
+    await expect(c.ejecutarRecuperacion(1313)).to.be.revertedWithCustomError(c, "AunNo");
+    await c.connect(ian).cancelarRecuperacion(1313);
+    await time.increase(48 * 3600);
+    await expect(c.ejecutarRecuperacion(1313)).to.be.revertedWithCustomError(c, "SinRecuperacion");
+    await c.proponerRecuperacion(1313, b.address);
+    await time.increase(48 * 3600);
+    await c.connect(x).ejecutarRecuperacion(1313);
     expect(await c.ownerOf(1313)).to.equal(b.address);
-    expect(await c.balanceOf(ian.address)).to.equal(0);
     expect(await c.numeroDe(b.address)).to.equal(1313);
     expect(await c.numeroDe(ian.address)).to.equal(0);
     expect(await c.totalMiembros()).to.equal(1);
-    await expect(c.connect(ian).recuperar(1313, ian.address)).to.be.reverted;
+    await expect(c.connect(ian).proponerRecuperacion(1313, ian.address)).to.be.reverted;
+    await expect(c.connect(x).cancelarRecuperacion(1313)).to.be.revertedWithCustomError(c, "NoAutorizado");
+  });
+
+  it("el freno de emergencia detiene las invitaciones", async () => {
+    await c.pausar(true);
+    const [inv, sig] = await firmar(c, ian, 1313, 1, vence);
+    await expect(c.unirse(inv, sig, a.address)).to.be.revertedWithCustomError(c, "Pausado");
+    await c.pausar(false);
+    await c.unirse(inv, sig, a.address);
+  });
+
+  it("un miembro no puede invitar mas del limite diario", async () => {
+    await c.cambiarLimiteDiario(2);
+    const w = Array.from({ length: 3 }, () => ethers.Wallet.createRandom().address);
+    for (let i = 0; i < 2; i++) { const [inv, sig] = await firmar(c, ian, 1313, i, vence); await c.unirse(inv, sig, w[i]); }
+    const [inv, sig] = await firmar(c, ian, 1313, 9, vence);
+    await expect(c.unirse(inv, sig, w[2])).to.be.revertedWithCustomError(c, "LimiteDiario");
+    await time.increase(86400);
+    const [inv2, sig2] = await firmar(c, ian, 1313, 10, vence + 86400);
+    await c.unirse(inv2, sig2, w[2]);
+  });
+
+  it("un contrato de reemplazo importa a todos con sus mismos numeros", async () => {
+    const [inv, sig] = await firmar(c, ian, 1313, 1, vence);
+    await c.unirse(inv, sig, a.address);
+    const nums = [...(await c.numeros(0, 100))];
+    const cuentas = await Promise.all(nums.map((n) => c.ownerOf(n)));
+    const nuevo = await (await ethers.getContractFactory("Movimiento")).deploy(guardian.address, 1315, await c.getAddress());
+    await nuevo.importar(cuentas, nums);
+    expect(await nuevo.ownerOf(1313)).to.equal(ian.address);
+    expect(await nuevo.ownerOf(1314)).to.equal(a.address);
+    expect(await nuevo.totalMiembros()).to.equal(2);
+    expect(await nuevo.contratoAnterior()).to.equal(await c.getAddress());
   });
 
   it("genera la imagen del badge en la cadena", async () => {

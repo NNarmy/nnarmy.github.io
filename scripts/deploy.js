@@ -4,7 +4,7 @@ async function main() {
   const [yo] = await ethers.getSigners();
   const guardian = process.env.GUARDIAN || yo.address;
   const inicio = Number(process.env.PRIMER_NUMERO || 1314);
-  const c = await (await ethers.getContractFactory("Movimiento")).deploy(guardian, inicio);
+  const c = await (await ethers.getContractFactory("Movimiento")).deploy(guardian, inicio, process.env.ANTERIOR || ethers.ZeroAddress);
   await c.waitForDeployment();
   console.log("Contrato:", await c.getAddress());
   if (process.env.FUNDADOR) {

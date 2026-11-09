@@ -5,10 +5,11 @@ const http = require("http");
 const { ethers } = require("ethers");
 const ABI = [
   "function unirse((uint256 invitador,uint256 nonce,uint256 vence) inv, bytes firma, address nuevo) returns (uint256)",
-  "error InvitacionUsada()", "error InvitacionVencida()", "error FirmaInvalida()", "error YaEsMiembro(address)", "error NumeroOcupado(uint256)",
+  "error InvitacionUsada()", "error InvitacionVencida()", "error FirmaInvalida()", "error YaEsMiembro(address)", "error NumeroOcupado(uint256)", "error Pausado()", "error LimiteDiario()",
 ];
 const MENSAJES = { InvitacionUsada: "esta invitación ya se usó", InvitacionVencida: "esta invitación venció",
-  FirmaInvalida: "la invitación no es de un miembro", YaEsMiembro: "esta llave ya tiene número" };
+  FirmaInvalida: "la invitación no es de un miembro", YaEsMiembro: "esta llave ya tiene número",
+  Pausado: "las invitaciones están pausadas por ahora", LimiteDiario: "este miembro ya invitó a muchas personas hoy, prueba mañana" };
 const wallet = new ethers.Wallet(process.env.PRIVATE_KEY, new ethers.JsonRpcProvider(process.env.RPC_URL));
 const c = new ethers.Contract(process.env.CONTRATO, ABI, wallet);
 const PORT = Number(process.env.PORT || 8787);

@@ -8,10 +8,11 @@ No hay token, no hay venta y no hay dinero de por medio.
 | Parte | Archivo | Qué hace |
 |---|---|---|
 | Contrato | `contracts/Movimiento.sol` | Registro de números (badge intransferible ERC-721 + ERC-5192) |
-| Pruebas | `test/Movimiento.test.js` | 8 pruebas: invitar, unirse, no transferir, recuperar, etc. |
+| Pruebas | `test/Movimiento.test.js` | 11 pruebas: invitar, unirse, no transferir, recuperar, pausar, migrar, etc. |
 | Página | `web/` | Somos, Mi número, Invitar (QR), Mostrar mi badge (QR que cambia), Comprobación |
 | Patrocinador | `relayer.js` | Pequeño servidor que paga el gas de los que se unen |
 | Despliegue | `scripts/deploy.js` | Publica el contrato y registra al fundador |
+| Respaldo | `scripts/exportar.js`, `scripts/migrar.js` | Copia del registro y contrato de reemplazo |
 
 ## Cómo funciona
 
@@ -20,6 +21,20 @@ No hay token, no hay venta y no hay dinero de por medio.
 3. **Verificar:** el miembro abre "Mostrar mi badge" y aparece un QR que cambia cada 20 segundos. Quien escanea ve "Verificado: esta persona es el #N", y una foto vieja no sirve.
 4. **Somos:** cualquiera ve cuántos miembros hay y qué números existen.
 5. **Guardián:** puede registrar números antiguos (fundadores) y mover un número a una llave nueva si alguien pierde el teléfono. Nunca puede duplicar un número.
+
+## Protección
+
+- **Recuperación con espera:** mover un número a otra llave tarda 48 horas, y el dueño actual o el guardián pueden cancelarlo. Nadie roba un número en silencio.
+- **Freno de emergencia:** el guardián puede pausar las invitaciones (`pausar(true)`).
+- **Límite diario:** cada miembro puede hacer entrar como máximo 5 personas por día (ajustable). Una llave robada no puede llenar el registro.
+- **Patrocinador con poco saldo:** la llave que paga el gas solo debe tener lo justo.
+- **Pendiente (fase de seguridad):** guardián en una billetera multifirma (por ejemplo 2 de 3), cambiar la llave de pruebas que está a la vista en `.github/workflows/contrato.yml` y pasarla a los secretos de GitHub.
+
+## Reconstrucción
+
+1. **Copia:** `CONTRATO=0x... npx hardhat run scripts/exportar.js --network baseSepolia` guarda número → llave en `respaldo/`.
+2. **Contrato de reemplazo:** `COPIA=respaldo/registro-N.json GUARDIAN=0x... npx hardhat run scripts/migrar.js --network baseSepolia` publica un contrato nuevo con todos los miembros y sus mismos números. El nuevo guarda la dirección del anterior en `contratoAnterior`.
+3. **Página:** no guarda nada importante. Se puede copiar a cualquier hosting y solo hay que cambiar `web/config.js`.
 
 Los nuevos empiezan en el 1314. El 1313 se registra como fundador.
 

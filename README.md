@@ -28,7 +28,8 @@ No hay token, no hay venta y no hay dinero de por medio.
 - **Freno de emergencia:** el guardián puede pausar las invitaciones (`pausar(true)`).
 - **Límite diario:** cada miembro puede hacer entrar como máximo 5 personas por día (ajustable). Una llave robada no puede llenar el registro.
 - **Patrocinador con poco saldo:** la llave que paga el gas solo debe tener lo justo.
-- **Pendiente (fase de seguridad):** guardián en una billetera multifirma (por ejemplo 2 de 3), cambiar la llave de pruebas que está a la vista en `.github/workflows/contrato.yml` y pasarla a los secretos de GitHub.
+- **Llaves:** la llave de despliegue vive solo en el secreto `PRIVATE_KEY` de GitHub y el guardián es la billetera principal de ian. La llave de pruebas antigua (`0x1fe5…c1f8`) quedó en el historial y está abandonada: nunca mandarle fondos.
+- **Pendiente:** guardián en una billetera multifirma (por ejemplo 2 de 3).
 
 ## Reconstrucción
 

@@ -2,7 +2,8 @@ name: Desplegar contrato
 on:
   workflow_dispatch:
     inputs:
-      red: { description: "baseSepolia o base", default: "baseSepolia", required: true }
+      red: { description: "base (real) o baseSepolia (pruebas)", default: "base", required: true }
+      guardian: { description: "Dirección de la billetera principal de ian (guardián)", required: true }
       fundador: { description: "Dirección del #1313 (se ve en Mi número). Vacío = se registra después", required: false }
 jobs:
   desplegar:
@@ -13,9 +14,9 @@ jobs:
         with: { node-version: 22 }
       - run: npm ci --legacy-peer-deps
       - run: npx hardhat test
-      - run: npx hardhat run scripts/deploy.js --network ${{ inputs.red }}
+      - name: Desplegar
+        run: npx hardhat run scripts/deploy.js --network ${{ inputs.red }}
         env:
-          # Llave SOLO de pruebas, a la vista a proposito por velocidad. Para la red real usar el secreto PRIVATE_KEY.
-          PRIVATE_KEY: ${{ inputs.red == 'base' && secrets.PRIVATE_KEY || '0x192d54e340cf005efb5fa980a936572359d05e5c0cca70b00ebe4cbb2fb31d18' }}
+          PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
           FUNDADOR: ${{ inputs.fundador }}
-          GUARDIAN: ${{ inputs.fundador }}
+          GUARDIAN: ${{ inputs.guardian }}

@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
     inputs:
       red: { description: "baseSepolia o base", default: "baseSepolia", required: true }
-      fundador: { description: "Dirección del #1313 (se ve en Mi número)", required: true }
+      fundador: { description: "Dirección del #1313 (se ve en Mi número). Vacío = se registra después", required: false }
 jobs:
   desplegar:
     runs-on: ubuntu-latest
@@ -15,6 +15,7 @@ jobs:
       - run: npx hardhat test
       - run: npx hardhat run scripts/deploy.js --network ${{ inputs.red }}
         env:
-          PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
+          # Llave SOLO de pruebas, a la vista a proposito por velocidad. Para la red real usar el secreto PRIVATE_KEY.
+          PRIVATE_KEY: ${{ inputs.red == 'base' && secrets.PRIVATE_KEY || '0x192d54e340cf005efb5fa980a936572359d05e5c0cca70b00ebe4cbb2fb31d18' }}
           FUNDADOR: ${{ inputs.fundador }}
           GUARDIAN: ${{ inputs.fundador }}

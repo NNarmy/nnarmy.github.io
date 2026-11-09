@@ -34,7 +34,8 @@ function importarLlave(frase) { const w = ethers.Wallet.fromPhrase(frase.trim().
 
 async function miNumero() {
   const w = leerLlave(); if (!w) return [null, 0];
-  return [w, Number(await contrato.numeroDe(w.address))];
+  try { return [w, Number(await contrato.numeroDe(w.address))]; }
+  catch { return [w, 0]; } // contrato aun no publicado o sin conexion
 }
 
 async function imagenBadge(n) {

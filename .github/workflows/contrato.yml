@@ -1,0 +1,20 @@
+name: Desplegar contrato
+on:
+  workflow_dispatch:
+    inputs:
+      red: { description: "baseSepolia o base", default: "baseSepolia", required: true }
+      fundador: { description: "Dirección del #1313 (se ve en Mi número)", required: true }
+jobs:
+  desplegar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: npm ci --legacy-peer-deps
+      - run: npx hardhat test
+      - run: npx hardhat run scripts/deploy.js --network ${{ inputs.red }}
+        env:
+          PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
+          FUNDADOR: ${{ inputs.fundador }}
+          GUARDIAN: ${{ inputs.fundador }}

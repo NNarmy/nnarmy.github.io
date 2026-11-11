@@ -1,0 +1,25 @@
+name: Copia del registro
+on:
+  schedule: [{ cron: "0 6 * * 1" }]   # cada lunes
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  copia:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: npm ci --legacy-peer-deps
+      - run: npx hardhat run scripts/exportar.js --network base
+        env:
+          CONTRATO: "0x8c6ACA8E53BaA96627DFF40552B5f328dCA8F230"
+      - name: Guardar copia
+        run: |
+          cp "$(ls -t respaldo/registro-*.json | head -1)" respaldo/ultimo.json
+          git config user.name "copia-automatica"
+          git config user.email "actions@users.noreply.github.com"
+          git add respaldo
+          git diff --cached --quiet || git commit -m "Copia del registro $(date -u +%F)"
+          git push

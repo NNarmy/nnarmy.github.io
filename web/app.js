@@ -243,7 +243,7 @@ const vistas = {
       try {
         const info = await safe("getSafeInfo", undefined, 3000);
         if (info.safeAddress.toLowerCase() !== dueño.toLowerCase()) {
-          el.innerHTML = estado + `<p class="msg error">Esta Safe (${esc(info.safeAddress)}) no es la guardiana del contrato.</p>`;
+          el.innerHTML = `<p class="msg error">Esta Safe no es la guardiana del contrato.</p>`;
           return;
         }
         const ejecutor = { safe: true, enviar: async (nombre, args) => {
@@ -255,18 +255,18 @@ const vistas = {
     }
 
     if (dueñoEsContrato) {
-      el.innerHTML = estado + `<p>El guardián es una <b>billetera compartida (Safe)</b>. Para actuar:</p>
+      el.innerHTML = `<p>El guardián es una <b>billetera compartida (Safe)</b>. Para actuar:</p>
         <ol class="tenue"><li>Entra a <b>app.safe.global</b> y conecta tu billetera.</li>
         <li>Ve a <b>Apps → Mis apps → Agregar app personalizada</b> y pega: <code>${esc(base())}</code></li>
         <li>Abre la app "Movimiento sin nombre". Cada acción queda propuesta y se ejecuta cuando firman los demás dueños.</li></ol>`;
       return;
     }
     if (!window.ethereum) {
-      el.innerHTML = estado + `<p>Para actuar como guardián, abre esta página <b>dentro del navegador de Trust Wallet</b> (pestaña Descubrir o Navegador) con la billetera Guardián activa.</p>
-        <p class="tenue">Enlace: <code>${esc(base())}#guardian</code></p>`;
+      el.innerHTML = `<p>Esta sección es solo para guardianes.</p>
+        <p class="tenue">Para entrar, abre esta página desde el navegador de la billetera del guardián.</p>`;
       return;
     }
-    el.innerHTML = estado + `<button id="g-conectar">Conectar billetera Guardián</button>`;
+    el.innerHTML = `<p>Esta sección es solo para guardianes.</p><button id="g-conectar">Conectar billetera Guardián</button>`;
     $("g-conectar").onclick = async () => {
       try {
         const bp = new ethers.BrowserProvider(window.ethereum);
@@ -276,7 +276,7 @@ const vistas = {
         if (Number(red.chainId) !== C.chainId) throw new Error("cambia la red de la billetera a Base");
         const firmante = await bp.getSigner();
         const yo = await firmante.getAddress();
-        if (yo.toLowerCase() !== dueño.toLowerCase()) throw new Error(`esta billetera (${yo.slice(0, 8)}…) no es la del guardián`);
+        if (yo.toLowerCase() !== dueño.toLowerCase()) throw new Error("esta billetera no es la del guardián");
         const g = contrato.connect(firmante);
         await panel({ safe: false, enviar: async (nombre, args) => { await (await g[nombre](...args)).wait(); } });
       } catch (e) { msg(el, `No se pudo conectar: ${e.shortMessage || e.message}`, "error"); }

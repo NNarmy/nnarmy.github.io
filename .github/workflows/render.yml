@@ -1,0 +1,41 @@
+name: Actualizar patrocinador en Render
+# Pone las variables del patrocinador y lo vuelve a desplegar con el código actual. Necesita el secreto RENDER_API_KEY.
+on:
+  workflow_dispatch:
+    inputs:
+      comunidad: { description: "Dirección del contrato de Comunidad", default: "0x5f3D0d7FE55A8557688a255DfB5E8717e3f6b251", required: true }
+permissions: {}
+jobs:
+  actualizar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      K: ${{ secrets.RENDER_API_KEY }}
+      API: https://api.render.com/v1
+    steps:
+      - name: Buscar el servicio
+        run: |
+          test -n "$K" || { echo "Falta el secreto RENDER_API_KEY"; exit 1; }
+          s=$(curl -sf -H "Authorization: Bearer $K" "$API/services?name=movimiento-patrocinador&limit=1")
+          id=$(echo "$s" | jq -r '.[0].service.id')
+          echo "Servicio: $id"; echo "$s" | jq '.[0].service | {repo, branch, rootDir: .rootDir, suspended}'
+          test "$id" != "null" && echo "ID=$id" >> $GITHUB_ENV
+      - name: Variable COMUNIDAD
+        run: |
+          curl -sf -X PUT -H "Authorization: Bearer $K" -H "Content-Type: application/json" \
+            -d '{"value":"${{ inputs.comunidad }}"}' "$API/services/$ID/env-vars/COMUNIDAD" | jq '{key, value}'
+      - name: Desplegar y esperar
+        run: |
+          d=$(curl -sf -X POST -H "Authorization: Bearer $K" -H "Content-Type: application/json" -d '{"clearCache":"do_not_clear"}' "$API/services/$ID/deploys")
+          did=$(echo "$d" | jq -r .id); echo "Deploy: $did"
+          for i in $(seq 1 60); do
+            st=$(curl -sf -H "Authorization: Bearer $K" "$API/services/$ID/deploys/$did" | jq -r .status)
+            echo "estado: $st"
+            case "$st" in live) exit 0;; *failed*|canceled|deactivated) exit 1;; esac
+            sleep 15
+          done
+          exit 1
+      - name: Probar
+        run: |
+          for i in $(seq 1 10); do r=$(curl -s -m 60 https://movimiento-patrocinador.onrender.com/ || true); echo "$r"; echo "$r" | grep -q '"ok":true' && break; sleep 10; done
+          curl -s -m 60 -X POST -H "Content-Type: application/json" -d '{"votacion":999,"numero":1,"opcion":0,"firma":"0x"}' https://movimiento-patrocinador.onrender.com/votar; echo

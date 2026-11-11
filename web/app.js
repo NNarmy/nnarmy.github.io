@@ -24,7 +24,7 @@ function qr(texto) {
   const q = qrcode(0, "M"); q.addData(texto); q.make();
   return `<div class="qr">${q.createImgTag(6, 0)}</div>`;
 }
-function msg(el, texto, tipo = "") { el.innerHTML += `<p class="msg ${tipo}">${esc(texto)}</p>`; }
+function msg(el, texto, tipo = "") { el.insertAdjacentHTML("beforeend", `<p class="msg ${tipo}">${esc(texto)}</p>`); }
 
 // ---------- Llave (billetera anonima guardada solo en este telefono) ----------
 const LLAVE = "movimiento.llave";
@@ -67,8 +67,6 @@ const vistas = {
     if (w) {
       el.innerHTML += `<p class="tenue">Tu dirección anónima:<br><code>${w.address}</code></p>
         <button class="secundario" id="ver-frase">Ver mis 12 palabras de respaldo</button><div id="frase"></div>`;
-      $("ver-frase").onclick = () => { $("frase").innerHTML = `<div class="frase">${esc(w.mnemonic.phrase)}</div>
-        <p class="tenue">Escríbelas en papel y guárdalas. Si pierdes el teléfono, con ellas recuperas tu número. Nunca se las muestres a nadie.</p>`; };
     }
     el.innerHTML += `<details style="margin-top:16px"><summary class="tenue">Recuperar con mis 12 palabras</summary>
       <textarea id="frase-in" rows="3" placeholder="palabra palabra palabra…"></textarea>
@@ -76,6 +74,9 @@ const vistas = {
       ${w ? "" : `<button class="secundario" id="crear">Crear una llave (para fundadores)</button>`}`;
     $("importar").onclick = () => { try { importarLlave($("frase-in").value); vistas.mio(); } catch { msg(el, "Esas palabras no son válidas.", "error"); } };
     if ($("crear")) $("crear").onclick = () => { crearLlave(); vistas.mio(); };
+    // Los manejadores se ponen al final: innerHTML += borra los que se pusieron antes.
+    if (w) $("ver-frase").onclick = () => { $("frase").innerHTML = `<div class="frase">${esc(w.mnemonic.phrase)}</div>
+        <p class="tenue">Escríbelas en papel y guárdalas. Si pierdes el teléfono, con ellas recuperas tu número. Nunca se las muestres a nadie.</p>`; };
   },
 
   async invitar() {

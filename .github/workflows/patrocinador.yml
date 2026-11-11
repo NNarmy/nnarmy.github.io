@@ -1,0 +1,17 @@
+name: Revisar patrocinador
+on:
+  workflow_dispatch:
+    inputs:
+      url: { description: "URL del patrocinador", default: "https://movimiento-patrocinador.onrender.com", required: true }
+jobs:
+  revisar:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          for i in $(seq 1 20); do
+            r=$(curl -s -m 60 "${{ inputs.url }}/" || true)
+            echo "intento $i: $r"
+            echo "$r" | grep -q '"ok":true' && exit 0
+            sleep 20
+          done
+          exit 1

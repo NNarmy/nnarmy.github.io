@@ -6,7 +6,30 @@ const ABI = [
   "function numeroDe(address) view returns (uint256)",
   "function ownerOf(uint256) view returns (address)",
   "function tokenURI(uint256) view returns (string)",
+  "function owner() view returns (address)",
+  "function pausado() view returns (bool)",
+  "function limiteDiario() view returns (uint256)",
+  "function siguienteNumero() view returns (uint256)",
+  "function recuperaciones(uint256) view returns (address nuevaCuenta, uint256 listo)",
+  "function pausar(bool)",
+  "function cambiarLimiteDiario(uint256)",
+  "function registrarFundador(address,uint256)",
+  "function proponerRecuperacion(uint256,address)",
+  "function cancelarRecuperacion(uint256)",
+  "function ejecutarRecuperacion(uint256)",
+  "error AunNo(uint256 listo)", "error SinRecuperacion()", "error NoAutorizado()", "error NumeroOcupado(uint256)",
+  "error YaEsMiembro(address)", "error NumeroInvalido()", "error OwnableUnauthorizedAccount(address)",
 ];
+const ERRORES = { AunNo: "todavía no han pasado las 48 horas", SinRecuperacion: "no hay recuperación pendiente para ese número",
+  NoAutorizado: "esta billetera no puede hacer eso", NumeroOcupado: "ese número ya tiene dueño", YaEsMiembro: "esa dirección ya tiene un número",
+  NumeroInvalido: "número inválido", OwnableUnauthorizedAccount: "solo el guardián puede hacer eso" };
+function nombreError(e) {
+  if (e?.revert?.name) return e.revert.name;
+  // Las billeteras envuelven el error: buscamos los datos del revert en cualquier nivel.
+  const datos = JSON.stringify(e, (k, v) => (typeof v === "bigint" ? v.toString() : v)).match(/0x[0-9a-fA-F]{8,}/g) || [];
+  for (const d of datos) { try { const p = contrato.interface.parseError(d); if (p) return p.name; } catch {} }
+}
+const error = (e) => ERRORES[nombreError(e)] || e?.shortMessage || e?.reason || e?.message;
 const provider = new ethers.JsonRpcProvider(C.rpc, C.chainId, { staticNetwork: true });
 const contrato = new ethers.Contract(C.contrato, ABI, provider);
 const DOMINIO = { name: "Movimiento", version: "1", chainId: C.chainId, verifyingContract: C.contrato };
@@ -154,6 +177,84 @@ const vistas = {
         <p class="centro msg ok">Verificado: esta persona es el <b>#${esc(n)}</b> del movimiento.</p>`;
     } catch (err) {
       el.innerHTML = `<p class="msg error">No verificado: ${esc(err.shortMessage || err.message)}.</p>`;
+    }
+  },
+  // ---------- Panel del guardian: se usa desde el navegador de Trust Wallet (o MetaMask) ----------
+  async guardian() {
+    const el = $("guardian-contenido");
+    const leer = async () => {
+      const [dueño, pausado, limite, total, sig] = await Promise.all([
+        contrato.owner(), contrato.pausado(), contrato.limiteDiario(), contrato.totalMiembros(), contrato.siguienteNumero()]);
+      return { dueño, pausado, limite, html: `<p class="tenue">Guardián: <code>${dueño}</code><br>Invitaciones: <b>${pausado ? "PAUSADAS" : "activas"}</b> · Límite por miembro: <b>${limite}</b>/día · Miembros: <b>${total}</b> · Próximo número: <b>${sig}</b></p>` };
+    };
+    const { dueño, html: estado } = await leer();
+    if (!window.ethereum) {
+      el.innerHTML = estado + `<p>Para actuar como guardián, abre esta página <b>dentro del navegador de Trust Wallet</b> (pestaña Descubrir o Navegador) con la billetera Guardián activa.</p>
+        <p class="tenue">Enlace: <code>${esc(base())}#guardian</code></p>`;
+      return;
+    }
+    el.innerHTML = estado + `<button id="g-conectar">Conectar billetera Guardián</button>`;
+    $("g-conectar").onclick = async () => {
+      try {
+        const bp = new ethers.BrowserProvider(window.ethereum);
+        await bp.send("eth_requestAccounts", []);
+        try { await bp.send("wallet_switchEthereumChain", [{ chainId: "0x" + C.chainId.toString(16) }]); } catch {}
+        const red = await bp.getNetwork();
+        if (Number(red.chainId) !== C.chainId) throw new Error("cambia la red de la billetera a Base");
+        const firmante = await bp.getSigner();
+        const yo = await firmante.getAddress();
+        if (yo.toLowerCase() !== dueño.toLowerCase()) throw new Error(`esta billetera (${yo.slice(0, 8)}…) no es la del guardián`);
+        await panel(contrato.connect(firmante));
+      } catch (e) { msg(el, `No se pudo conectar: ${e.shortMessage || e.message}`, "error"); }
+    };
+
+    async function panel(g, aviso = "") {
+      const { pausado: pausadoAhora, limite, html } = await leer();
+      el.innerHTML = html + `<p class="msg ok">Conectado como guardián.</p>
+        <div class="bloque"><h3>Freno de emergencia</h3>
+          <button id="g-pausa">${pausadoAhora ? "Reanudar invitaciones" : "Pausar invitaciones"}</button></div>
+        <div class="bloque"><h3>Límite de invitaciones por miembro al día</h3>
+          <input id="g-limite" type="number" min="0" value="${limite}"><button class="secundario" id="g-limite-btn">Guardar límite</button></div>
+        <div class="bloque"><h3>Registrar a un miembro antiguo</h3>
+          <input id="g-f-num" type="number" placeholder="Número, por ejemplo 200">
+          <input id="g-f-dir" placeholder="Dirección anónima 0x… (la ve en Mi número)">
+          <button class="secundario" id="g-f-btn">Registrar</button></div>
+        <div class="bloque"><h3>Recuperar un número perdido</h3>
+          <p class="tenue">La persona crea una llave nueva en su teléfono y te da su dirección. El cambio se aplica 48 horas después; mientras tanto el dueño actual o tú pueden cancelarlo.</p>
+          <input id="g-r-num" type="number" placeholder="Número a recuperar">
+          <input id="g-r-dir" placeholder="Dirección nueva 0x…">
+          <button class="secundario" id="g-r-ver">Ver estado</button>
+          <button class="secundario" id="g-r-prop">Proponer recuperación</button>
+          <button class="secundario" id="g-r-ejec">Ejecutar (pasadas 48 h)</button>
+          <button class="secundario" id="g-r-canc">Cancelar</button></div>
+        <div id="g-msg"></div>`;
+      const out = $("g-msg");
+      if (aviso) msg(out, aviso, "ok");
+      const tx = async (boton, fn, ok) => {
+        boton.disabled = true; const t = boton.textContent; boton.textContent = "Firmando y enviando…";
+        try { const r = await fn(); await r.wait(); msg(out, ok, "ok"); }
+        catch (e) { msg(out, `Error: ${error(e)}`, "error"); }
+        boton.disabled = false; boton.textContent = t;
+      };
+      const num = (id) => { const n = Number($(id).value); if (!Number.isInteger(n) || n <= 0) throw new Error("número inválido"); return n; };
+      const dir = (id) => { const d = $(id).value.trim(); if (!ethers.isAddress(d)) throw new Error("dirección inválida"); return ethers.getAddress(d); };
+      const seguro = (f) => async (e) => { try { await f(e.target); } catch (err) { msg(out, err.message, "error"); } };
+
+      $("g-pausa").onclick = seguro(async (b) => {
+        b.disabled = true; b.textContent = "Firmando y enviando…";
+        try { await (await g.pausar(!pausadoAhora)).wait(); await panel(g, pausadoAhora ? "Invitaciones reanudadas." : "Invitaciones pausadas."); }
+        catch (e) { msg(out, `Error: ${error(e)}`, "error"); b.disabled = false; }
+      });
+      $("g-limite-btn").onclick = seguro((b) => { const n = Number($("g-limite").value); return tx(b, () => g.cambiarLimiteDiario(n), `Límite cambiado a ${n} por día.`); });
+      $("g-f-btn").onclick = seguro((b) => { const n = num("g-f-num"), d = dir("g-f-dir"); return tx(b, () => g.registrarFundador(d, n), `#${n} registrado.`); });
+      $("g-r-ver").onclick = seguro(async () => {
+        const n = num("g-r-num"); const r = await contrato.recuperaciones(n);
+        if (!Number(r.listo)) return msg(out, `#${n}: no hay recuperación pendiente. Dueño actual: ${await contrato.ownerOf(n)}`);
+        msg(out, `#${n}: pasa a ${r.nuevaCuenta} a partir del ${new Date(Number(r.listo) * 1000).toLocaleString()}.`);
+      });
+      $("g-r-prop").onclick = seguro((b) => { const n = num("g-r-num"), d = dir("g-r-dir"); return tx(b, () => g.proponerRecuperacion(n, d), `Recuperación del #${n} propuesta. Se puede ejecutar en 48 horas.`); });
+      $("g-r-ejec").onclick = seguro((b) => { const n = num("g-r-num"); return tx(b, () => g.ejecutarRecuperacion(n), `#${n} movido a su llave nueva.`); });
+      $("g-r-canc").onclick = seguro((b) => { const n = num("g-r-num"); return tx(b, () => g.cancelarRecuperacion(n), `Recuperación del #${n} cancelada.`); });
     }
   },
 };

@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Manual del miembro</title>
+<link rel="icon" href="icono.svg" type="image/svg+xml">
+<meta name="theme-color" content="#0d0d12">
+<style>
+  :root { --fondo:#0d0d12; --tarjeta:#16161d; --borde:#2a2a33; --oro:#d9c58b; --texto:#f2ead3; --tenue:#9b9584; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--fondo); color:var(--texto); font:16px/1.6 Georgia, "Times New Roman", serif; }
+  main { max-width:620px; margin:0 auto; padding:24px 16px 64px; }
+  header { text-align:center; margin-bottom:24px; }
+  header h1 { font-weight:normal; letter-spacing:.12em; font-size:20px; margin:0; color:var(--oro); text-transform:uppercase; }
+  header p { margin:4px 0 0; color:var(--tenue); font-style:italic; }
+  nav.indice { background:var(--tarjeta); border:1px solid var(--borde); border-radius:16px; padding:16px 20px; margin-bottom:24px; }
+  nav.indice ol { margin:0; padding-left:20px; } nav.indice a { color:var(--oro); text-decoration:none; }
+  section { background:var(--tarjeta); border:1px solid var(--borde); border-radius:16px; padding:20px 22px; margin-bottom:16px; }
+  h2 { font-weight:normal; color:var(--oro); margin:0 0 10px; font-size:21px; }
+  h3 { font-weight:normal; color:var(--oro); margin:18px 0 6px; font-size:17px; }
+  p, li { margin:6px 0; } ol, ul { padding-left:22px; }
+  .nota { border-left:3px solid var(--oro); padding:6px 12px; margin:12px 0; color:var(--texto); background:rgba(217,197,139,.06); border-radius:0 8px 8px 0; }
+  .tenue { color:var(--tenue); font-size:14px; }
+  b { color:var(--oro); font-weight:normal; }
+  code { font-size:13px; color:var(--tenue); word-break:break-all; }
+  a { color:var(--oro); }
+  .volver { display:block; text-align:center; margin-top:24px; }
+</style>
+</head>
+<body>
+<main>
+<header>
+  <h1>Manual del miembro</h1>
+  <p>Todo lo que puedes hacer en la página, paso a paso.</p>
+</header>
+
+<nav class="indice"><ol>
+  <li><a href="#que-es">Qué es esto</a></li>
+  <li><a href="#entrar">Cómo recibir tu número</a></li>
+  <li><a href="#antiguo">Si ya tenías número desde antes</a></li>
+  <li><a href="#instalar">Instalar la página en tu teléfono</a></li>
+  <li><a href="#mio">Mi número y tus 12 palabras</a></li>
+  <li><a href="#invitar">Invitar a alguien</a></li>
+  <li><a href="#mostrar">Mostrar tu badge</a></li>
+  <li><a href="#comprobar">Comprobar a otra persona</a></li>
+  <li><a href="#somos">Cuántos somos</a></li>
+  <li><a href="#perdi">Si pierdes o cambias de teléfono</a></li>
+  <li><a href="#seguridad">Cuidados importantes</a></li>
+  <li><a href="#preguntas">Preguntas frecuentes</a></li>
+</ol></nav>
+
+<section id="que-es">
+  <h2>1. Qué es esto</h2>
+  <p>Cada miembro del movimiento tiene un <b>número</b> que es suyo para siempre. El número queda escrito en una cadena de bloques pública (Base), un registro que nadie puede borrar ni modificar.</p>
+  <p>No se guarda tu nombre, tu correo, tu teléfono ni ningún dato tuyo. Solo existe la relación entre un número y una <b>llave anónima</b> que vive en tu teléfono.</p>
+  <p>No es una criptomoneda ni una inversión. No se compra, no se vende y no cuesta nada. Tu número no se puede regalar ni transferir a otra persona.</p>
+</section>
+
+<section id="entrar">
+  <h2>2. Cómo recibir tu número</h2>
+  <p>Nadie se inscribe solo: entras porque un miembro te invita.</p>
+  <ol>
+    <li>El miembro te muestra un <b>código QR</b> en su teléfono, o te manda un enlace.</li>
+    <li>Escanéalo con la cámara de tu teléfono y abre el enlace.</li>
+    <li>Verás "Has sido invitado". Toca <b>Aceptar mi número</b>.</li>
+    <li>Espera unos segundos (la primera vez del día puede tardar hasta un minuto). Aparecerá tu badge con tu número.</li>
+    <li>Ve enseguida a <b>Mi número</b> y anota tus 12 palabras en papel (ver sección 5).</li>
+  </ol>
+  <p class="nota">Recibes el siguiente número libre. Cada invitación sirve para una sola persona y vence a los 7 días.</p>
+</section>
+
+<section id="antiguo">
+  <h2>3. Si ya tenías número desde antes</h2>
+  <p>Si ya eras parte del movimiento con un número, el guardián te enviará un mensaje por WhatsApp o correo con un enlace personal.</p>
+  <ol>
+    <li>Abre el enlace. Verás "Tu número de siempre".</li>
+    <li>Toca <b>Crear mi llave</b>.</li>
+    <li>Aparece un código como <code>Movimiento #200 0x…</code>. Toca <b>Responder por WhatsApp</b> (o cópialo) y envíaselo a quien te mandó el enlace.</li>
+    <li>Cuando el guardián lo registre, verás tu badge en <b>Mi número</b>.</li>
+  </ol>
+  <p class="nota">Ese código no es secreto: solo indica a qué llave va tu número. Lo secreto son tus 12 palabras, que nunca debes enviar.</p>
+</section>
+
+<section id="instalar">
+  <h2>4. Instalar la página en tu teléfono</h2>
+  <p>Tu llave se guarda dentro del navegador. Instalar la página como app evita que se borre por accidente y te da acceso rápido.</p>
+  <ul>
+    <li><b>iPhone (Safari):</b> botón compartir → "Agregar a pantalla de inicio".</li>
+    <li><b>Android (Chrome):</b> menú ⋮ → "Instalar app" o "Agregar a pantalla principal".</li>
+  </ul>
+  <p class="tenue">La dirección oficial es <code>https://nnarmy.github.io</code>. Desconfía de cualquier otra.</p>
+</section>
+
+<section id="mio">
+  <h2>5. Mi número y tus 12 palabras</h2>
+  <p>En la pestaña <b>Mi número</b> ves:</p>
+  <ul>
+    <li><b>Tu badge</b> con tu número.</li>
+    <li><b>Tu dirección anónima</b> (empieza por 0x). No es secreta; es como el "lugar" de tu llave en la cadena.</li>
+    <li><b>Ver mis 12 palabras de respaldo:</b> estas palabras SON tu llave. Con ellas cualquiera puede actuar como tú.</li>
+  </ul>
+  <h3>Guárdalas así</h3>
+  <ol>
+    <li>Escríbelas a mano en papel, en orden, y guárdalo en un lugar seguro.</li>
+    <li>No les tomes foto ni captura de pantalla. No las mandes por chat ni correo. No se las dictes a nadie, ni siquiera al guardián.</li>
+  </ol>
+  <h3>Recuperar con mis 12 palabras</h3>
+  <p>Si cambias de teléfono o se borró la página, abre <b>Mi número</b> → "Recuperar con mis 12 palabras", escríbelas separadas por espacios y toca <b>Recuperar</b>. Tu número vuelve a aparecer.</p>
+</section>
+
+<section id="invitar">
+  <h2>6. Invitar a alguien</h2>
+  <ol>
+    <li>Abre la pestaña <b>Invitar</b> desde el teléfono donde tienes tu número.</li>
+    <li>Aparece un código QR. Muéstraselo a la persona para que lo escanee, o toca <b>Copiar enlace</b> y envíaselo.</li>
+    <li>Para invitar a otra persona, toca <b>Crear otra invitación</b>. Cada código sirve para una sola persona.</li>
+  </ol>
+  <p class="nota">Invita a quien conozcas y consideres merecedor. Cada miembro puede invitar hasta 5 personas por día (el guardián puede ajustar este límite). Las invitaciones vencen a los 7 días.</p>
+  <p class="tenue">Registrar a alguien no le cuesta nada a nadie: el movimiento paga ese pequeño costo de la red.</p>
+</section>
+
+<section id="mostrar">
+  <h2>7. Mostrar tu badge</h2>
+  <p>Cuando alguien quiera comprobar que eres miembro:</p>
+  <ol>
+    <li>Abre la pestaña <b>Mostrar mi badge</b>.</li>
+    <li>Deja que la otra persona escanee el código con su cámara.</li>
+  </ol>
+  <p class="nota">El código cambia cada 20 segundos y caduca a los 90. Una foto vieja o una captura no sirven para hacerse pasar por ti.</p>
+</section>
+
+<section id="comprobar">
+  <h2>8. Comprobar a otra persona</h2>
+  <ol>
+    <li>Pídele que abra <b>Mostrar mi badge</b>.</li>
+    <li>Escanea su código con la cámara de tu teléfono y abre el enlace.</li>
+    <li>La página consulta la cadena y te dice:
+      <ul>
+        <li><b>Verificado:</b> esa persona es dueña de ese número.</li>
+        <li><b>Código viejo:</b> es auténtico, pero no está en vivo. Pide que lo muestre de nuevo.</li>
+        <li><b>No verificado:</b> el código no corresponde a ese número.</li>
+      </ul>
+    </li>
+  </ol>
+  <p class="tenue">No necesitas ser miembro para comprobar a alguien.</p>
+</section>
+
+<section id="somos">
+  <h2>9. Cuántos somos</h2>
+  <p>En <b>Inicio</b> ves cuántos miembros hay y la lista de todos los números registrados. Esta información es pública y cualquiera puede comprobarla directamente en la cadena.</p>
+</section>
+
+<section id="perdi">
+  <h2>10. Si pierdes o cambias de teléfono</h2>
+  <h3>Si tienes tus 12 palabras</h3>
+  <p>Abre la página en el teléfono nuevo, ve a <b>Mi número</b> → "Recuperar con mis 12 palabras". Listo.</p>
+  <h3>Si perdiste las 12 palabras</h3>
+  <ol>
+    <li>En el teléfono nuevo, abre la página y en <b>Mi número</b> toca "Crear una llave".</li>
+    <li>Envía al guardián tu número y la dirección anónima nueva (0x…).</li>
+    <li>El guardián propone mover tu número a la llave nueva. El cambio se aplica <b>48 horas después</b>.</li>
+  </ol>
+  <p class="nota">Las 48 horas de espera te protegen: si alguien pide tu número haciéndose pasar por ti, hay tiempo para avisar al guardián y cancelarlo.</p>
+  <h3>Si crees que alguien vio tus 12 palabras</h3>
+  <p>Avísale al guardián cuanto antes. Se hace lo mismo que arriba: llave nueva y mover tu número a ella.</p>
+</section>
+
+<section id="seguridad">
+  <h2>11. Cuidados importantes</h2>
+  <ul>
+    <li>Nadie del movimiento te va a pedir tus 12 palabras. Quien te las pida está intentando robar tu número.</li>
+    <li>La única dirección oficial es <code>nnarmy.github.io</code>.</li>
+    <li>Nunca te pedirán dinero por un número ni por una invitación.</li>
+    <li>Si borras los datos del navegador sin haber anotado tus 12 palabras, pierdes la llave (pero no el número: el guardián puede recuperarlo).</li>
+  </ul>
+</section>
+
+<section id="preguntas">
+  <h2>12. Preguntas frecuentes</h2>
+  <h3>¿Alguien puede saber quién soy por mi número?</h3>
+  <p>No por la cadena: ahí solo hay números y llaves anónimas. Solo lo sabe quien tú decidas contarle.</p>
+  <h3>¿Puedo tener dos números?</h3>
+  <p>No. Cada llave tiene un solo número, y cada número una sola llave.</p>
+  <h3>¿Puedo regalar o vender mi número?</h3>
+  <p>No. El número no se puede transferir; solo se mueve a otra llave tuya mediante la recuperación del guardián.</p>
+  <h3>Al aceptar la invitación sale un error.</h3>
+  <p>Puede que la invitación ya se haya usado, haya vencido o que el invitador llegó a su límite del día. Pide una nueva. Si dice que no se pudo conectar, espera un minuto e intenta otra vez.</p>
+  <h3>¿Qué pasa si la página desaparece?</h3>
+  <p>Los números están en la cadena, no en la página. Existe una copia del registro y del código, y la página puede volver a publicarse en otra dirección.</p>
+</section>
+
+<a class="volver" href="./">← Volver a la página</a>
+</main>
+</body>
+</html>

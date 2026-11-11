@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Manual del guardián</title>
+<link rel="icon" href="icono.svg" type="image/svg+xml">
+<meta name="theme-color" content="#0d0d12">
+<style>
+  :root { --fondo:#0d0d12; --tarjeta:#16161d; --borde:#2a2a33; --oro:#d9c58b; --texto:#f2ead3; --tenue:#9b9584; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--fondo); color:var(--texto); font:16px/1.6 Georgia, "Times New Roman", serif; }
+  main { max-width:620px; margin:0 auto; padding:24px 16px 64px; }
+  header { text-align:center; margin-bottom:24px; }
+  header h1 { font-weight:normal; letter-spacing:.12em; font-size:20px; margin:0; color:var(--oro); text-transform:uppercase; }
+  header p { margin:4px 0 0; color:var(--tenue); font-style:italic; }
+  nav.indice { background:var(--tarjeta); border:1px solid var(--borde); border-radius:16px; padding:16px 20px; margin-bottom:24px; }
+  nav.indice ol { margin:0; padding-left:20px; } nav.indice a { color:var(--oro); text-decoration:none; }
+  section { background:var(--tarjeta); border:1px solid var(--borde); border-radius:16px; padding:20px 22px; margin-bottom:16px; }
+  h2 { font-weight:normal; color:var(--oro); margin:0 0 10px; font-size:21px; }
+  h3 { font-weight:normal; color:var(--oro); margin:18px 0 6px; font-size:17px; }
+  p, li { margin:6px 0; } ol, ul { padding-left:22px; }
+  .nota { border-left:3px solid var(--oro); padding:6px 12px; margin:12px 0; color:var(--texto); background:rgba(217,197,139,.06); border-radius:0 8px 8px 0; }
+  .tenue { color:var(--tenue); font-size:14px; }
+  b { color:var(--oro); font-weight:normal; }
+  code { font-size:13px; color:var(--tenue); word-break:break-all; }
+  a { color:var(--oro); }
+  .volver { display:block; text-align:center; margin-top:24px; }
+</style>
+</head>
+<body>
+<main>
+<header>
+  <h1>Manual del guardián</h1>
+  <p>Para quien cuida el registro. Léelo completo antes de actuar.</p>
+</header>
+
+<nav class="indice"><ol>
+  <li><a href="#rol">Qué es el guardián y qué puede hacer</a></li>
+  <li><a href="#piezas">Las piezas del sistema</a></li>
+  <li><a href="#abrir">Cómo abrir el panel</a></li>
+  <li><a href="#estado">Leer el estado</a></li>
+  <li><a href="#freno">Freno de emergencia</a></li>
+  <li><a href="#limite">Límite de invitaciones</a></li>
+  <li><a href="#uno">Registrar a un miembro antiguo</a></li>
+  <li><a href="#invitar">Invitar a miembros antiguos por WhatsApp o correo</a></li>
+  <li><a href="#lista">Registrar los códigos que te devuelvan</a></li>
+  <li><a href="#recuperar">Recuperar un número perdido</a></li>
+  <li><a href="#safe">Billetera compartida (Safe)</a></li>
+  <li><a href="#saldo">Saldos y costos</a></li>
+  <li><a href="#automatico">Lo que funciona solo</a></li>
+  <li><a href="#crisis">Qué hacer en una emergencia</a></li>
+  <li><a href="#nuevo">Si eres un guardián nuevo</a></li>
+</ol></nav>
+
+<section id="rol">
+  <h2>1. Qué es el guardián y qué puede hacer</h2>
+  <p>El guardián es la billetera que administra el registro. No es dueña de los números de nadie, pero tiene poderes de cuidado:</p>
+  <ul>
+    <li>Pausar y reanudar las invitaciones.</li>
+    <li>Cambiar cuántas personas puede invitar cada miembro por día.</li>
+    <li>Registrar a miembros antiguos con su número de siempre.</li>
+    <li>Mover un número a una llave nueva cuando alguien la pierde (con 48 horas de espera).</li>
+    <li>Entregar el control a una billetera compartida (Safe).</li>
+  </ul>
+  <h3>Lo que el guardián NO puede hacer</h3>
+  <ul>
+    <li>Borrar un número, ni el registro, ni cambiar el código del contrato.</li>
+    <li>Mover un número de golpe: toda recuperación espera 48 horas y se puede cancelar.</li>
+    <li>Saber quién es cada persona: el sistema no guarda datos personales.</li>
+  </ul>
+  <p class="nota">Las 12 palabras de la billetera guardiana son el bien más valioso del movimiento. En papel, nunca en fotos ni en chats.</p>
+</section>
+
+<section id="piezas">
+  <h2>2. Las piezas del sistema</h2>
+  <ul>
+    <li><b>El contrato</b> (el registro) en la red Base: <code>0x8c6ACA8E53BaA96627DFF40552B5f328dCA8F230</code>. Ahí viven los números para siempre.</li>
+    <li><b>La página</b>: <code>https://nnarmy.github.io</code>. Su código está en GitHub, en la organización NNarmy.</li>
+    <li><b>Billetera NN</b> (<code>0xd72BDA565C01B0202B6691c32179763539fBe55e</code>): paga el costo de red cuando alguien acepta una invitación. Sus palabras están guardadas como secreto en GitHub y en Render.</li>
+    <li><b>Billetera guardiana</b>: firma y paga las acciones del panel.</li>
+    <li><b>Patrocinador</b>: un pequeño servidor gratuito en Render que usa NN para registrar a los nuevos. Si nadie lo usa por un rato se duerme, y la primera invitación del día tarda hasta un minuto.</li>
+  </ul>
+</section>
+
+<section id="abrir">
+  <h2>3. Cómo abrir el panel</h2>
+  <ol>
+    <li>Abre Trust Wallet (o MetaMask) y activa la billetera guardiana.</li>
+    <li>Ve al navegador de la billetera (Descubrir / Navegador) y abre <code>https://nnarmy.github.io/#guardian</code>.</li>
+    <li>Toca <b>Conectar billetera Guardián</b> y acepta. Si la red no es Base, la billetera te pedirá cambiarla.</li>
+    <li>Si aparece "Conectado como guardián", ya puedes actuar.</li>
+  </ol>
+  <p class="tenue">Cada acción abre una ventana de la billetera para firmar. Revisa y confirma. Cuesta una fracción de centavo.</p>
+  <p class="tenue">Si el guardián ya es una Safe, el panel se usa desde app.safe.global (ver sección 11).</p>
+</section>
+
+<section id="estado">
+  <h2>4. Leer el estado</h2>
+  <p>Arriba del panel ves:</p>
+  <ul>
+    <li><b>Guardián:</b> la dirección que controla el registro ahora.</li>
+    <li><b>Invitaciones:</b> activas o PAUSADAS.</li>
+    <li><b>Límite por miembro:</b> cuántas invitaciones puede usar cada miembro al día.</li>
+    <li><b>Miembros:</b> total registrado.</li>
+    <li><b>Próximo número:</b> el número que recibirá el siguiente invitado.</li>
+  </ul>
+</section>
+
+<section id="freno">
+  <h2>5. Freno de emergencia</h2>
+  <p><b>Pausar invitaciones</b> detiene en seco todas las invitaciones nuevas. Los miembros siguen existiendo y pueden mostrar y comprobar su badge. Tú puedes seguir registrando antiguos y haciendo recuperaciones.</p>
+  <p>Úsalo si ves un crecimiento raro (muchos números nuevos de golpe), si crees que la llave de un miembro fue robada o si algo no te cuadra. Cuando esté resuelto, toca <b>Reanudar invitaciones</b>.</p>
+</section>
+
+<section id="limite">
+  <h2>6. Límite de invitaciones por miembro al día</h2>
+  <p>Por defecto es 5. Escribe el nuevo número y toca <b>Guardar límite</b>. Ponerlo en 0 equivale a que nadie pueda invitar, sin pausar todo.</p>
+  <p class="tenue">Sirve para que, si roban la llave de un miembro, el daño sea limitado.</p>
+</section>
+
+<section id="uno">
+  <h2>7. Registrar a un miembro antiguo</h2>
+  <p>Para alguien que ya tenía número antes del registro (del 1 al 1312, por ejemplo):</p>
+  <ol>
+    <li>La persona abre la página, va a <b>Mi número</b> → "Crear una llave" y te pasa su dirección anónima (0x…).</li>
+    <li>En el panel escribe el número y la dirección, y toca <b>Registrar</b>.</li>
+  </ol>
+  <p class="nota">Revisa bien el número antes de firmar: una vez registrado, ese número queda con esa llave. Si te equivocas de llave, se corrige con una recuperación (48 horas).</p>
+</section>
+
+<section id="invitar">
+  <h2>8. Invitar a miembros antiguos por WhatsApp o correo</h2>
+  <ol>
+    <li>En <b>Invitar a miembros antiguos</b> pega una línea por persona: número, coma y su WhatsApp con código de país, o su correo. Ejemplos:<br>
+      <code>200, 573001234567</code><br><code>201, alguien@correo.com</code><br><code>202</code> (sin contacto: eliges a quién enviarlo)</li>
+    <li>Toca <b>Preparar invitaciones</b>. Junto a cada número aparece un botón <b>WhatsApp</b> o <b>Correo</b> con el mensaje ya escrito y su enlace personal.</li>
+    <li>Toca cada botón y envía el mensaje.</li>
+  </ol>
+  <p class="nota">La lista de contactos no se guarda en ninguna parte ni se envía a ningún servidor. Si cierras la página, desaparece. Guarda tu lista donde tú decidas.</p>
+  <p class="tenue">La persona abre el enlace, crea su llave y te responde con un código como <code>Movimiento #200 0x…</code>.</p>
+</section>
+
+<section id="lista">
+  <h2>9. Registrar los códigos que te devuelvan</h2>
+  <ol>
+    <li>Junta los códigos que te llegan (puedes ir acumulándolos).</li>
+    <li>Pégalos en <b>Registrar los códigos que te devuelvan</b>, uno por línea.</li>
+    <li>Toca <b>Registrar la lista</b>. El panel revisa que no haya repetidos ni números ya registrados y los envía de a 150 por firma.</li>
+  </ol>
+  <p class="nota">Solo registra códigos que te llegaron directamente de la persona a la que invitaste. Si un enlace se reenvió a otra persona, quien decide qué llave recibe el número eres tú.</p>
+</section>
+
+<section id="recuperar">
+  <h2>10. Recuperar un número perdido</h2>
+  <p>Cuando un miembro pierde su teléfono sin sus 12 palabras, o cree que alguien las vio:</p>
+  <ol>
+    <li>La persona crea una llave nueva (<b>Mi número</b> → "Crear una llave") y te pasa su número y la dirección nueva.</li>
+    <li>Asegúrate de que de verdad es esa persona. Lo ideal es en persona.</li>
+    <li>En <b>Recuperar un número perdido</b> escribe número y dirección nueva, y toca <b>Proponer recuperación</b>.</li>
+    <li>Pasadas 48 horas, toca <b>Ejecutar</b>. El número pasa a la llave nueva.</li>
+  </ol>
+  <ul>
+    <li><b>Ver estado:</b> muestra si hay una recuperación pendiente y cuándo se puede ejecutar.</li>
+    <li><b>Cancelar:</b> anula una recuperación pendiente (por ejemplo si era un engaño).</li>
+  </ul>
+  <p class="nota">La espera de 48 horas existe para frenar engaños: si alguien se hace pasar por un miembro, hay tiempo para que el verdadero avise y se cancele.</p>
+</section>
+
+<section id="safe">
+  <h2>11. Billetera compartida (Safe)</h2>
+  <p>Una Safe es una billetera que necesita la firma de varias personas o aparatos (por ejemplo 2 de 3). Así nadie solo, ni un ladrón con un teléfono, puede usar los poderes del guardián.</p>
+  <h3>Entregar el control a la Safe (una sola vez)</h3>
+  <ol>
+    <li>Crea la Safe en <code>app.safe.global</code>, en la red <b>Base</b>, con sus dueños.</li>
+    <li>En el panel, sección <b>Entregar el control a una billetera compartida</b>, pega la dirección de la Safe dos veces y confirma.</li>
+  </ol>
+  <p class="nota">Después de esto la billetera guardiana anterior deja de tener poderes. Asegúrate de que los dueños de la Safe tienen sus llaves a salvo.</p>
+  <h3>Usar el panel desde la Safe</h3>
+  <ol>
+    <li>Entra a <code>app.safe.global</code> y conecta una de las billeteras dueñas.</li>
+    <li>Ve a <b>Apps → Mis apps → Agregar app personalizada</b> y pega <code>https://nnarmy.github.io</code>.</li>
+    <li>Abre la app "Movimiento sin nombre". Cada acción queda <b>propuesta</b> y se ejecuta cuando firman los demás dueños.</li>
+  </ol>
+</section>
+
+<section id="saldo">
+  <h2>12. Saldos y costos</h2>
+  <ul>
+    <li><b>NN</b> paga cada nuevo miembro por invitación: menos de 5 centavos de dólar por persona. Con 0,005 ETH alcanza para más de mil.</li>
+    <li><b>Guardián</b> paga sus propias acciones. Registrar a los 1.312 antiguos cuesta en total unos 0,0007–0,0025 ETH. Con 0,005 ETH sobra.</li>
+    <li>Para recargar, envía ETH <b>en la red Base</b> (no en Ethereum) a la dirección correspondiente.</li>
+  </ul>
+</section>
+
+<section id="automatico">
+  <h2>13. Lo que funciona solo</h2>
+  <ul>
+    <li><b>Copia semanal:</b> cada lunes se guarda una copia completa del registro en el repositorio (<code>respaldo/ultimo.json</code>).</li>
+    <li><b>Alerta de saldo:</b> si NN baja de 0,0005 ETH, GitHub abre un aviso y te llega una notificación.</li>
+  </ul>
+</section>
+
+<section id="crisis">
+  <h2>14. Qué hacer en una emergencia</h2>
+  <h3>Aparecen miembros extraños o en cantidad</h3>
+  <ol><li>Pausa las invitaciones.</li><li>Revisa la lista en Inicio y averigua de qué invitador vienen.</li><li>Si la llave de un miembro fue robada, haz que cree una nueva y recupera su número.</li><li>Reanuda.</li></ol>
+  <h3>Crees que alguien vio las palabras del guardián</h3>
+  <p>Actúa ya: crea una billetera nueva (o una Safe) y entrégale el control desde el panel antes que el intruso. Después pide ayuda técnica para revisar todo.</p>
+  <h3>Alguien vio las palabras de NN</h3>
+  <p>Solo arriesga el saldo de NN (para el gas), no los números. Hay que crear una billetera nueva, cambiar el secreto en GitHub y en Render, y mover el saldo.</p>
+  <h3>Se cae la página o el patrocinador</h3>
+  <p>Los números siguen intactos en la cadena. La página se puede volver a publicar desde el repositorio, o desde la copia semanal, en otra dirección. Mientras tanto, solo se detienen las invitaciones nuevas.</p>
+</section>
+
+<section id="nuevo">
+  <h2>15. Si eres un guardián nuevo</h2>
+  <ol>
+    <li>Lee este manual y el <a href="manual.html">manual del miembro</a>.</li>
+    <li>Recibe el control por la vía segura: que el guardián anterior te agregue como dueño de la Safe, o te entregue el control desde el panel a tu billetera o Safe.</li>
+    <li>Anota en papel las 12 palabras de tu billetera y guárdalas lejos de tu teléfono.</li>
+    <li>Abre el panel (sección 3) y revisa el estado.</li>
+    <li>Pide acceso a la organización NNarmy en GitHub para recibir las alertas.</li>
+  </ol>
+  <p class="nota">Ser guardián es cuidar, no mandar. Actúa con calma, verifica en persona y, ante la duda, pausa primero.</p>
+</section>
+
+<a class="volver" href="./">← Volver a la página</a>
+</main>
+</body>
+</html>

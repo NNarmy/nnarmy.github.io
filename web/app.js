@@ -328,4 +328,5 @@ async function ruta() {
   try { await vistas[vista](dato); } catch (e) { console.error(e); msg($(`v-${vista}`), "No se pudo conectar con la cadena. Intenta más tarde.", "error"); }
 }
 window.addEventListener("hashchange", ruta);
+if ("serviceWorker" in navigator && !enSafe) navigator.serviceWorker.register("sw.js").catch(() => {});
 ruta();

@@ -7,12 +7,17 @@ const ABI = [
   "function unirse((uint256 invitador,uint256 nonce,uint256 vence) inv, bytes firma, address nuevo) returns (uint256)",
   "error InvitacionUsada()", "error InvitacionVencida()", "error FirmaInvalida()", "error YaEsMiembro(address)", "error NumeroOcupado(uint256)", "error Pausado()", "error LimiteDiario()",
 ];
-const MENSAJES = { InvitacionUsada: "esta invitación ya se usó", InvitacionVencida: "esta invitación venció",
+const ABI_COMUNIDAD = [
+  "function votar(uint256 votacion, uint256 numero, uint256 opcion, bytes firma)",
+  "error VotacionCerrada()", "error OpcionInvalida()", "error YaVoto()", "error FirmaInvalida()",
+];
+const MENSAJES = { VotacionCerrada: "la votación ya cerró", OpcionInvalida: "esa opción no existe", YaVoto: "este número ya votó", InvitacionUsada: "esta invitación ya se usó", InvitacionVencida: "esta invitación venció",
   FirmaInvalida: "la invitación no es de un miembro", YaEsMiembro: "esta llave ya tiene número",
   Pausado: "las invitaciones están pausadas por ahora", LimiteDiario: "este miembro ya invitó a muchas personas hoy, prueba mañana" };
 const provider = new ethers.JsonRpcProvider(process.env.RPC_URL || "https://mainnet.base.org");
 const wallet = (process.env.PRIVATE_KEY ? new ethers.Wallet(process.env.PRIVATE_KEY) : ethers.Wallet.fromPhrase(process.env.MNEMONIC.trim())).connect(provider);
 const c = new ethers.Contract(process.env.CONTRATO || "0x8c6ACA8E53BaA96627DFF40552B5f328dCA8F230", ABI, wallet);
+const comunidad = process.env.COMUNIDAD ? new ethers.Contract(process.env.COMUNIDAD, ABI_COMUNIDAD, wallet) : null;
 const PORT = Number(process.env.PORT || 8787);
 
 function enviar(res, code, obj) {
@@ -23,11 +28,20 @@ function enviar(res, code, obj) {
 http.createServer(async (req, res) => {
   if (req.method === "OPTIONS") return enviar(res, 204, {});
   if (req.method === "GET" && req.url === "/") return enviar(res, 200, { ok: true, patrocinador: wallet.address });
-  if (req.method !== "POST" || req.url !== "/unirse") return enviar(res, 404, { error: "no encontrado" });
+  if (req.method !== "POST" || !["/unirse", "/votar"].includes(req.url)) return enviar(res, 404, { error: "no encontrado" });
   let body = "";
   req.on("data", (d) => { body += d; if (body.length > 4000) req.destroy(); });
   req.on("end", async () => {
     try {
+      if (req.url === "/votar") {
+        if (!comunidad) throw new Error("las votaciones todavía no están activas");
+        const { votacion, numero, opcion, firma } = JSON.parse(body);
+        const args = [BigInt(votacion), BigInt(numero), BigInt(opcion), firma];
+        await comunidad.votar.staticCall(...args); // revierte si el voto no sirve
+        const tx = await comunidad.votar(...args);
+        await tx.wait();
+        return enviar(res, 200, { ok: true, tx: tx.hash });
+      }
       const { inv, firma, nuevo } = JSON.parse(body);
       if (!ethers.isAddress(nuevo)) throw new Error("direccion invalida");
       const args = [[BigInt(inv.invitador), BigInt(inv.nonce), BigInt(inv.vence)], firma, nuevo];
@@ -36,7 +50,8 @@ http.createServer(async (req, res) => {
       await tx.wait();
       enviar(res, 200, { numero: numero.toString(), tx: tx.hash });
     } catch (e) {
-      const nombre = e.revert?.name;
+      let nombre = e.revert?.name;
+      if (!nombre && e.data && comunidad) { try { nombre = comunidad.interface.parseError(e.data)?.name; } catch {} }
       enviar(res, 400, { error: MENSAJES[nombre] || e.shortMessage || e.message });
     }
   });

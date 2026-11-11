@@ -60,6 +60,8 @@ const LOTE = 150;
 const MAX_MENSAJE = 160; // caracteres del mensaje de invitacion (debe caber en el codigo QR)
 const textoMensaje = (n, nonce, m) => `Mensaje de invitacion #${n} ${nonce}: ${m}`; // miembros antiguos por transaccion
 
+const T = (s) => (window.i18n ? window.i18n.t(s) : s);
+const LOCAL = () => (window.i18n ? window.i18n.locale() : "es");
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const b64u = { enc: (o) => btoa(unescape(encodeURIComponent(JSON.stringify(o)))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, ""),
@@ -234,7 +236,7 @@ const vistas = {
     if (inv.m && inv.fm) {
       try {
         const autor = ethers.verifyMessage(textoMensaje(inv.invitador, inv.nonce, inv.m), inv.fm);
-        if (autor === (await contrato.ownerOf(inv.invitador))) carta = `<blockquote class="carta">${esc(inv.m).replace(/\n/g, "<br>")}<cite>— #${esc(inv.invitador)}</cite></blockquote>`;
+        if (autor === (await contrato.ownerOf(inv.invitador))) carta = `<blockquote class="carta" translate="no">${esc(inv.m).replace(/\n/g, "<br>")}<cite>— #${esc(inv.invitador)}</cite></blockquote>`;
       } catch {}
     }
     el.innerHTML = carta + `<p>El miembro <b>#${esc(inv.invitador)}</b> te considera merecedor de un número.</p>
@@ -564,27 +566,27 @@ async function pintarComunidad() {
   for (let i = tv - 1; i >= 0 && votaciones.length < 3; i--) votaciones.push({ id: i, ...(await comunidad.votacion(i)).toObject() });
   const [w, n] = await miNumero().catch(() => [null, 0]);
   const ahora = Date.now() / 1000;
-  const fecha = (t) => new Date(Number(t) * 1000).toLocaleDateString("es", { day: "numeric", month: "long", year: "numeric" });
+  const fecha = (t) => new Date(Number(t) * 1000).toLocaleDateString(LOCAL(), { day: "numeric", month: "long", year: "numeric" });
   let html = "";
   if (anuncios.length) html += `<div class="tarjeta"><h2>Anuncios</h2>${anuncios.map((a) => `<article class="anuncio">
-      <p>${esc(a.texto).replace(/\n/g, "<br>")}</p><p class="tenue">Anuncio ${a.id} · ${fecha(a.fecha)} · <span class="firmado">publicado por el guardián en la cadena</span></p></article>`).join("")}</div>`;
+      <p translate="no">${esc(a.texto).replace(/\n/g, "<br>")}</p><p class="tenue">Anuncio ${a.id} · ${fecha(a.fecha)} · <span class="firmado">publicado por el guardián en la cadena</span></p></article>`).join("")}</div>`;
   for (const v of votaciones) {
     const abierta = Number(v.cierre) > ahora;
     const total = v.votos.reduce((s, x) => s + Number(x), 0);
     const voté = n ? await comunidad.yaVoto(v.id, n) : false;
     const puede = abierta && n && !voté;
-    html += `<div class="tarjeta votacion"><p class="etiqueta">${abierta ? "Votación abierta" : "Votación cerrada"}</p><h3>${esc(v.pregunta)}</h3>
+    html += `<div class="tarjeta votacion"><p class="etiqueta">${abierta ? "Votación abierta" : "Votación cerrada"}</p><h3 translate="no">${esc(v.pregunta)}</h3>
       ${v.opciones.map((o, i) => { const pct = total ? Math.round((Number(v.votos[i]) / total) * 100) : 0;
-        return puede ? `<button class="secundario opcion" data-v="${v.id}" data-o="${i}">${esc(o)}</button>`
-          : `<div class="resultado"><div class="barra" style="width:${pct}%"></div><span>${esc(o)}</span><b>${pct}%</b></div>`; }).join("")}
-      <p class="tenue">${total} ${total === 1 ? "voto" : "votos"} · ${abierta ? `cierra el ${fecha(v.cierre)}` : `cerró el ${fecha(v.cierre)}`}${voté ? " · tu número ya votó" : ""}${abierta && !n ? " · solo votan los miembros desde su teléfono" : ""}</p>
+        return puede ? `<button class="secundario opcion" data-v="${v.id}" data-o="${i}" translate="no">${esc(o)}</button>`
+          : `<div class="resultado"><div class="barra" style="width:${pct}%"></div><span translate="no">${esc(o)}</span><b>${pct}%</b></div>`; }).join("")}
+      <p class="tenue"><span>${total} ${total === 1 ? "voto" : "votos"}</span> · <span>${abierta ? `cierra el ${fecha(v.cierre)}` : `cerró el ${fecha(v.cierre)}`}</span>${voté ? " · <span>tu número ya votó</span>" : ""}${abierta && !n ? " · <span>solo votan los miembros desde su teléfono</span>" : ""}</p>
       <div class="v-msg"></div></div>`;
   }
   caja.innerHTML = html; caja.hidden = !html;
   caja.querySelectorAll("button.opcion").forEach((b) => b.onclick = async () => {
     const id = Number(b.dataset.v), opcion = Number(b.dataset.o);
     const tarjeta = b.closest(".votacion");
-    if (!confirm(`¿Votar "${b.textContent}"? Tu número solo puede votar una vez.`)) return;
+    if (!confirm(T(`¿Votar "${b.textContent}"? Tu número solo puede votar una vez.`))) return;
     tarjeta.querySelectorAll("button").forEach((x) => (x.disabled = true)); b.textContent = "Enviando voto…";
     try {
       const firma = await w.signTypedData(DOMINIO_VOTO, TIPOS_VOTO, { votacion: id, numero: n, opcion });
@@ -647,7 +649,7 @@ async function pintarHistoria() {
   const y = (v) => H - P - (v / max) * (H - 2 * P);
   const puntos = datos.map((d, i) => `${x(i).toFixed(1)},${y(d.miembros).toFixed(1)}`).join(" ");
   const area = `${x(0)},${H - P} ${puntos} ${x(datos.length - 1)},${H - P}`;
-  const f = (s) => new Date(s + "T12:00:00Z").toLocaleDateString("es", { day: "numeric", month: "short", year: "numeric" });
+  const f = (s) => new Date(s + "T12:00:00Z").toLocaleDateString(LOCAL(), { day: "numeric", month: "short", year: "numeric" });
   caja.innerHTML = `<h2>Nuestra historia</h2>
     <svg viewBox="0 0 ${W} ${H}" class="grafica" role="img" aria-label="Miembros a lo largo del tiempo">
       <defs><linearGradient id="g-area" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d9b96a" stop-opacity=".35"/><stop offset="1" stop-color="#d9b96a" stop-opacity="0"/></linearGradient></defs>

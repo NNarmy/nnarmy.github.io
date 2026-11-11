@@ -170,3 +170,14 @@ label { display:block; margin-top:12px; }
 a.boton.secundario-a { background:rgba(217,185,106,.06); color:var(--oro-claro); border:1px solid var(--linea-fuerte); box-shadow:none; }
 a.boton.secundario-a::after { display:none; }
 .qr img { width:min(280px, 72vw); height:auto; }
+
+/* Selector de idioma */
+.cabecera { position:relative; }
+.idiomas { position:absolute; top:0; right:0; display:flex; gap:2px; padding:3px; border-radius:999px;
+  background:rgba(255,255,255,.04); border:1px solid rgba(217,185,106,.18); backdrop-filter:blur(8px); z-index:2; }
+.idiomas button { all:unset; cursor:pointer; font:600 11px/1 var(--sans, Inter, sans-serif); letter-spacing:.08em; color:var(--tenue);
+  padding:6px 9px; border-radius:999px; transition:color .2s, background .2s; }
+.idiomas button:hover { color:var(--oro-claro); }
+.idiomas button[aria-pressed="true"] { color:#1a1408; background:var(--oro-grad); }
+.idiomas button:focus-visible { outline:2px solid var(--oro); outline-offset:1px; }
+.pestanas span { white-space:nowrap; }

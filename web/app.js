@@ -17,6 +17,7 @@ const ABI = [
   "function proponerRecuperacion(uint256,address)",
   "function cancelarRecuperacion(uint256)",
   "function ejecutarRecuperacion(uint256)",
+  "function transferOwnership(address)",
   "error AunNo(uint256 listo)", "error SinRecuperacion()", "error NoAutorizado()", "error NumeroOcupado(uint256)",
   "error YaEsMiembro(address)", "error NumeroInvalido()", "error OwnableUnauthorizedAccount(address)",
 ];
@@ -64,6 +65,24 @@ async function miNumero() {
 async function imagenBadge(n) {
   const uri = await contrato.tokenURI(n);
   return JSON.parse(atob(uri.split(",")[1])).image;
+}
+
+// ---------- Puente con Safe (billetera compartida): protocolo de mensajes de las Safe Apps ----------
+const enSafe = window.parent !== window;
+let safeId = 0;
+function safe(method, params = undefined, espera = 60000) {
+  return new Promise((ok, mal) => {
+    const id = `mov-${Date.now()}-${++safeId}`;
+    const t = setTimeout(() => { removeEventListener("message", oir); mal(new Error("Safe no respondió")); }, espera);
+    function oir(ev) {
+      const d = ev.data;
+      if (!d || d.id !== id) return;
+      clearTimeout(t); removeEventListener("message", oir);
+      d.success === false ? mal(new Error(d.error || "Safe rechazó la operación")) : ok(d.data);
+    }
+    addEventListener("message", oir);
+    window.parent.postMessage({ id, method, params, env: { sdkVersion: "9.1.0" } }, "*");
+  });
 }
 
 // ---------- Vistas ----------
@@ -190,6 +209,31 @@ const vistas = {
       return { dueño, pausado, limite, html: `<p class="tenue">Guardián: <code>${dueño}</code><br>Invitaciones: <b>${pausado ? "PAUSADAS" : "activas"}</b> · Límite por miembro: <b>${limite}</b>/día · Miembros: <b>${total}</b> · Próximo número: <b>${sig}</b></p>` };
     };
     const { dueño, html: estado } = await leer();
+    const dueñoEsContrato = (await provider.getCode(dueño)) !== "0x";
+
+    // Modo billetera compartida: la página está abierta como app dentro de Safe.
+    if (enSafe) {
+      try {
+        const info = await safe("getSafeInfo", undefined, 3000);
+        if (info.safeAddress.toLowerCase() !== dueño.toLowerCase()) {
+          el.innerHTML = estado + `<p class="msg error">Esta Safe (${esc(info.safeAddress)}) no es la guardiana del contrato.</p>`;
+          return;
+        }
+        const ejecutor = { safe: true, enviar: async (nombre, args) => {
+          const data = contrato.interface.encodeFunctionData(nombre, args);
+          await safe("sendTransactions", { txs: [{ to: C.contrato, value: "0", data }] });
+        } };
+        return panel(ejecutor);
+      } catch (e) { /* no es Safe: seguimos con billetera normal */ }
+    }
+
+    if (dueñoEsContrato) {
+      el.innerHTML = estado + `<p>El guardián es una <b>billetera compartida (Safe)</b>. Para actuar:</p>
+        <ol class="tenue"><li>Entra a <b>app.safe.global</b> y conecta tu billetera.</li>
+        <li>Ve a <b>Apps → Mis apps → Agregar app personalizada</b> y pega: <code>${esc(base())}</code></li>
+        <li>Abre la app "Movimiento sin nombre". Cada acción queda propuesta y se ejecuta cuando firman los demás dueños.</li></ol>`;
+      return;
+    }
     if (!window.ethereum) {
       el.innerHTML = estado + `<p>Para actuar como guardián, abre esta página <b>dentro del navegador de Trust Wallet</b> (pestaña Descubrir o Navegador) con la billetera Guardián activa.</p>
         <p class="tenue">Enlace: <code>${esc(base())}#guardian</code></p>`;
@@ -206,13 +250,14 @@ const vistas = {
         const firmante = await bp.getSigner();
         const yo = await firmante.getAddress();
         if (yo.toLowerCase() !== dueño.toLowerCase()) throw new Error(`esta billetera (${yo.slice(0, 8)}…) no es la del guardián`);
-        await panel(contrato.connect(firmante));
+        const g = contrato.connect(firmante);
+        await panel({ safe: false, enviar: async (nombre, args) => { await (await g[nombre](...args)).wait(); } });
       } catch (e) { msg(el, `No se pudo conectar: ${e.shortMessage || e.message}`, "error"); }
     };
 
-    async function panel(g, aviso = "") {
+    async function panel(ej, aviso = "") {
       const { pausado: pausadoAhora, limite, html } = await leer();
-      el.innerHTML = html + `<p class="msg ok">Conectado como guardián.</p>
+      el.innerHTML = html + `<p class="msg ok">${ej.safe ? "Conectado como billetera compartida (Safe). Cada acción queda propuesta hasta que firmen los demás dueños." : "Conectado como guardián."}</p>
         <div class="bloque"><h3>Freno de emergencia</h3>
           <button id="g-pausa">${pausadoAhora ? "Reanudar invitaciones" : "Pausar invitaciones"}</button></div>
         <div class="bloque"><h3>Límite de invitaciones por miembro al día</h3>
@@ -229,12 +274,17 @@ const vistas = {
           <button class="secundario" id="g-r-prop">Proponer recuperación</button>
           <button class="secundario" id="g-r-ejec">Ejecutar (pasadas 48 h)</button>
           <button class="secundario" id="g-r-canc">Cancelar</button></div>
+        ${ej.safe ? "" : `<div class="bloque"><h3>Entregar el control a una billetera compartida (Safe)</h3>
+          <p class="tenue">Después de esto, esta billetera deja de ser guardiana. Solo la Safe podrá actuar (y podría devolverte el control con sus firmas).</p>
+          <input id="g-s-dir" placeholder="Dirección de la Safe 0x…">
+          <input id="g-s-dir2" placeholder="Repite la dirección">
+          <button class="secundario" id="g-s-btn">Entregar control a la Safe</button></div>`}
         <div id="g-msg"></div>`;
       const out = $("g-msg");
       if (aviso) msg(out, aviso, "ok");
-      const tx = async (boton, fn, ok) => {
-        boton.disabled = true; const t = boton.textContent; boton.textContent = "Firmando y enviando…";
-        try { const r = await fn(); await r.wait(); msg(out, ok, "ok"); }
+      const tx = async (boton, nombre, args, ok) => {
+        boton.disabled = true; const t = boton.textContent; boton.textContent = ej.safe ? "Proponiendo en Safe…" : "Firmando y enviando…";
+        try { await ej.enviar(nombre, args); msg(out, ej.safe ? `Propuesta enviada a la Safe. Cuando firmen los demás: ${ok}` : ok, "ok"); }
         catch (e) { msg(out, `Error: ${error(e)}`, "error"); }
         boton.disabled = false; boton.textContent = t;
       };
@@ -244,26 +294,33 @@ const vistas = {
 
       $("g-pausa").onclick = seguro(async (b) => {
         b.disabled = true; b.textContent = "Firmando y enviando…";
-        try { await (await g.pausar(!pausadoAhora)).wait(); await panel(g, pausadoAhora ? "Invitaciones reanudadas." : "Invitaciones pausadas."); }
+        const ok = pausadoAhora ? "Invitaciones reanudadas." : "Invitaciones pausadas.";
+        try { await ej.enviar("pausar", [!pausadoAhora]); await panel(ej, ej.safe ? `Propuesta enviada a la Safe. Cuando firmen los demás: ${ok}` : ok); }
         catch (e) { msg(out, `Error: ${error(e)}`, "error"); b.disabled = false; }
       });
-      $("g-limite-btn").onclick = seguro((b) => { const n = Number($("g-limite").value); return tx(b, () => g.cambiarLimiteDiario(n), `Límite cambiado a ${n} por día.`); });
-      $("g-f-btn").onclick = seguro((b) => { const n = num("g-f-num"), d = dir("g-f-dir"); return tx(b, () => g.registrarFundador(d, n), `#${n} registrado.`); });
+      $("g-limite-btn").onclick = seguro((b) => { const n = Number($("g-limite").value); return tx(b, "cambiarLimiteDiario", [n], `Límite cambiado a ${n} por día.`); });
+      $("g-f-btn").onclick = seguro((b) => { const n = num("g-f-num"), d = dir("g-f-dir"); return tx(b, "registrarFundador", [d, n], `#${n} registrado.`); });
       $("g-r-ver").onclick = seguro(async () => {
         const n = num("g-r-num"); const r = await contrato.recuperaciones(n);
         if (!Number(r.listo)) return msg(out, `#${n}: no hay recuperación pendiente. Dueño actual: ${await contrato.ownerOf(n)}`);
         msg(out, `#${n}: pasa a ${r.nuevaCuenta} a partir del ${new Date(Number(r.listo) * 1000).toLocaleString()}.`);
       });
-      $("g-r-prop").onclick = seguro((b) => { const n = num("g-r-num"), d = dir("g-r-dir"); return tx(b, () => g.proponerRecuperacion(n, d), `Recuperación del #${n} propuesta. Se puede ejecutar en 48 horas.`); });
-      $("g-r-ejec").onclick = seguro((b) => { const n = num("g-r-num"); return tx(b, () => g.ejecutarRecuperacion(n), `#${n} movido a su llave nueva.`); });
-      $("g-r-canc").onclick = seguro((b) => { const n = num("g-r-num"); return tx(b, () => g.cancelarRecuperacion(n), `Recuperación del #${n} cancelada.`); });
+      $("g-r-prop").onclick = seguro((b) => { const n = num("g-r-num"), d = dir("g-r-dir"); return tx(b, "proponerRecuperacion", [n, d], `Recuperación del #${n} propuesta. Se puede ejecutar en 48 horas.`); });
+      $("g-r-ejec").onclick = seguro((b) => { const n = num("g-r-num"); return tx(b, "ejecutarRecuperacion", [n], `#${n} movido a su llave nueva.`); });
+      $("g-r-canc").onclick = seguro((b) => { const n = num("g-r-num"); return tx(b, "cancelarRecuperacion", [n], `Recuperación del #${n} cancelada.`); });
+      if ($("g-s-btn")) $("g-s-btn").onclick = seguro(async (b) => {
+        const d = dir("g-s-dir");
+        if (d !== dir("g-s-dir2")) throw new Error("las dos direcciones no coinciden");
+        if ((await provider.getCode(d)) === "0x") throw new Error("esa dirección no es una Safe en Base (no es un contrato)");
+        await tx(b, "transferOwnership", [d], "Control entregado a la Safe. Desde ahora el panel se usa desde app.safe.global.");
+      });
     }
   },
 };
 
 async function ruta() {
   clearInterval(vistas._timer);
-  const h = location.hash.slice(1) || "inicio";
+  const h = location.hash.slice(1) || (enSafe ? "guardian" : "inicio");
   const [v, dato] = h.split("=");
   const vista = vistas[v] ? v : "inicio";
   document.querySelectorAll("section").forEach((s) => s.classList.toggle("activa", s.id === `v-${vista}`));

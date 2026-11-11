@@ -81,7 +81,8 @@ const vistas = {
     const [w, n] = await miNumero();
     if (n) {
       el.innerHTML = `<div class="badge centro"><img alt="Badge ${n}" src="${await imagenBadge(n)}"></div>
-        <p class="centro">Eres el <b>#${n}</b>.</p>`;
+        <p class="centro">Eres el <b>#${n}</b>.</p>
+        ${matchMedia("(display-mode: standalone)").matches ? "" : `<p class="tenue">Consejo: agrega esta página a tu pantalla de inicio (iPhone: compartir → "Agregar a pantalla de inicio"; Android: menú ⋮ → "Instalar app") para que tu llave no se borre.</p>`}`;
     } else if (w) {
       el.innerHTML = `<p>Este teléfono tiene una llave, pero todavía no tiene número. Pide a un miembro que te invite.</p>`;
     } else {
@@ -139,7 +140,8 @@ const vistas = {
         if (!r.ok) throw new Error(res.error || "error");
         el.innerHTML = `<div class="badge centro"><img alt="Badge" src="${await imagenBadge(res.numero)}"></div>
           <p class="centro">Bienvenido. Eres el <b>#${res.numero}</b>.</p>
-          <p class="tenue">Ahora ve a "Mi número" y guarda tus 12 palabras de respaldo en papel.</p>`;
+          <p class="tenue">Ahora ve a "Mi número" y guarda tus 12 palabras de respaldo en papel.</p>
+          <p class="tenue">Y agrega esta página a tu pantalla de inicio (en iPhone: botón compartir → "Agregar a pantalla de inicio"; en Android: menú ⋮ → "Instalar app"). Así tu llave no se borra.</p>`;
       } catch (err) {
         e.target.disabled = false; e.target.textContent = "Intentar de nuevo";
         msg(el, `No se pudo registrar: ${err.message}.`, "error");

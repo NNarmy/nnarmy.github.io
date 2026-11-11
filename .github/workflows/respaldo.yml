@@ -4,6 +4,7 @@ on:
   workflow_dispatch:
 permissions:
   contents: write
+  issues: write
 jobs:
   copia:
     runs-on: ubuntu-latest
@@ -23,3 +24,14 @@ jobs:
           git add respaldo
           git diff --cached --quiet || git commit -m "Copia del registro $(date -u +%F)"
           git push
+      - name: Revisar saldo del patrocinador
+        id: saldo
+        continue-on-error: true
+        run: npx hardhat run scripts/saldo.js --network base
+      - name: Avisar si el saldo esta bajo
+        if: steps.saldo.outcome == 'failure'
+        env: { GH_TOKEN: "${{ github.token }}" }
+        run: |
+          gh issue create --title "El patrocinador del gas se está quedando sin ETH" \
+            --body "A la billetera NN (0xd72BDA565C01B0202B6691c32179763539fBe55e) le quedan $(cat saldo.txt) ETH en Base. Mándale un poco de ETH en la red Base para que las invitaciones sigan funcionando." \
+            --assignee "${{ github.repository_owner }}"

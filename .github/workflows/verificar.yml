@@ -1,0 +1,14 @@
+name: Verificar contratos en Basescan
+on: { workflow_dispatch: {} }
+permissions: {}
+jobs:
+  verificar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: npm ci --legacy-peer-deps
+      - run: npx hardhat run scripts/verificar.js
+        env:
+          ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}

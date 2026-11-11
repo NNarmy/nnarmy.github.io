@@ -48,6 +48,8 @@
   <li><a href="#invitar">Invitar a miembros antiguos por WhatsApp o correo</a></li>
   <li><a href="#lista">Registrar los códigos que te devuelvan</a></li>
   <li><a href="#recuperar">Recuperar un número perdido</a></li>
+  <li><a href="#anuncios">Anuncios</a></li>
+  <li><a href="#votaciones">Votaciones</a></li>
   <li><a href="#safe">Billetera compartida (Safe)</a></li>
   <li><a href="#saldo">Saldos y costos</a></li>
   <li><a href="#automatico">Lo que funciona solo</a></li>
@@ -169,6 +171,23 @@
   <p class="nota">La espera de 48 horas existe para frenar engaños: si alguien se hace pasar por un miembro, hay tiempo para que el verdadero avise y se cancele.</p>
 </section>
 
+<section id="anuncios">
+  <h2>Anuncios</h2>
+  <p>En <b>Publicar un anuncio</b> escribe el mensaje y toca <b>Publicar anuncio</b>. Aparece en Inicio para todos, con la garantía de que lo publicó el guardián (solo la billetera guardiana, o la Safe, puede publicar).</p>
+  <p>Queda en la cadena para siempre. Si te equivocas, escribe su número (aparece como "Anuncio N" en Inicio) en <b>Ocultar ese anuncio</b>: deja de mostrarse en la página.</p>
+  <p class="nota">Piensa bien antes de publicar: ocultar no es borrar, cualquiera puede leerlo en la cadena.</p>
+</section>
+
+<section id="votaciones">
+  <h2>Votaciones</h2>
+  <ol>
+    <li>En <b>Crear una votación</b> escribe la pregunta y las opciones, una por línea (de 2 a 8).</li>
+    <li>Elige cuántos días estará abierta y toca <b>Crear votación</b>.</li>
+    <li>Los miembros votan desde Inicio. Cada número vota una vez; el patrocinador paga el costo.</li>
+  </ol>
+  <p class="tenue">Los resultados se ven en vivo. Se sabe qué número votó qué, nunca qué persona.</p>
+</section>
+
 <section id="safe">
   <h2>11. Billetera compartida (Safe)</h2>
   <p>Una Safe es una billetera que necesita la firma de varias personas o aparatos (por ejemplo 2 de 3). Así nadie solo, ni un ladrón con un teléfono, puede usar los poderes del guardián.</p>
@@ -199,6 +218,8 @@
   <h2>13. Lo que funciona solo</h2>
   <ul>
     <li><b>Copia semanal:</b> cada lunes se guarda una copia completa del registro en el repositorio (<code>respaldo/ultimo.json</code>).</li>
+    <li><b>Patrocinador despierto:</b> cada 10 minutos GitHub le da un toque para que no se duerma.</li>
+    <li><b>Copia en IPFS:</b> cada vez que cambia la página se sube una copia a IPFS. Su dirección queda en <code>respaldo/ipfs.txt</code> del repositorio. Si GitHub fallara, la página sigue viva ahí.</li>
     <li><b>Alerta de saldo:</b> si NN baja de 0,0005 ETH, GitHub abre un aviso y te llega una notificación.</li>
   </ul>
 </section>

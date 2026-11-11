@@ -4,5 +4,6 @@ window.CONFIG = {
   rpc: "https://mainnet.base.org",
   chainId: 8453,                  // 8453 = Base (real), 84532 = Base Sepolia (pruebas)
   patrocinador: "https://movimiento-patrocinador.onrender.com", // servidor que paga el gas de los nuevos (Render)
+  comunidad: "",                 // contrato de anuncios y votaciones (vacío = desactivado)
   explorador: "https://basescan.org",
 };

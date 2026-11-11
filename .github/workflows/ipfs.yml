@@ -1,0 +1,28 @@
+name: Copia en IPFS
+# Cada vez que cambia la página, sube una copia a IPFS (Pinata) y guarda la dirección en respaldo/ipfs.txt.
+on:
+  push:
+    branches: [main]
+    paths: ["web/**"]
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency: { group: ipfs, cancel-in-progress: false }
+jobs:
+  subir:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: node scripts/ipfs.js
+        env:
+          PINATA_JWT: ${{ secrets.PINATA_JWT }}
+      - name: Guardar la dirección
+        run: |
+          git config user.name "copia-automatica"
+          git config user.email "actions@users.noreply.github.com"
+          git add respaldo/ipfs.txt 2>/dev/null || exit 0
+          git diff --cached --quiet && exit 0
+          git commit -m "Copia en IPFS actualizada"
+          git pull --rebase origin main && git push

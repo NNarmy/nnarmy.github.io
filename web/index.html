@@ -14,7 +14,7 @@
 <meta name="apple-mobile-web-app-title" content="Movimiento">
 <link rel="preload" href="fuentes/cormorant-400-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fuentes/inter.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="estilo.css?v=12">
+<link rel="stylesheet" href="estilo.css?v=13">
 </head>
 <body data-vista="inicio">
 <canvas id="cielo" aria-hidden="true"></canvas>
@@ -27,12 +27,16 @@
     <p class="lema">La revolución silenciosa. Aquí no hay nombres, hay números.</p>
   </header>
 
+  <a id="aviso-respaldo" class="aviso" href="#mio" hidden>Todavía no confirmas tus 12 palabras de respaldo. <span>Hazlo ahora →</span></a>
+
   <section id="v-inicio">
     <div class="contador tarjeta">
       <p class="etiqueta">Somos</p>
       <div class="grande" id="total">·</div>
       <p class="tenue centro">miembros registrados para siempre en la cadena</p>
     </div>
+
+    <div id="comunidad" hidden></div>
 
     <p class="manifiesto">Un movimiento de personas con bondad en el corazón que se reconocen por un número, no por un nombre.</p>
 
@@ -94,6 +98,12 @@
     <div id="comprobar-contenido"></div>
   </section>
 
+  <section id="v-escanear" class="tarjeta">
+    <h2>Escanear</h2>
+    <p class="tenue">Apunta la cámara al código de un badge, una invitación o un enlace del movimiento.</p>
+    <div id="escanear-contenido"></div>
+  </section>
+
   <section id="v-reclamar" class="tarjeta">
     <h2>Tu número de siempre</h2>
     <div id="reclamar-contenido"></div>
@@ -114,16 +124,18 @@
     <svg viewBox="0 0 24 24"><path d="M12 2.5l2.4 6.6 6.6 2.4-6.6 2.4L12 20.5l-2.4-6.6L3 11.5l6.6-2.4z"/></svg><span>Inicio</span></a>
   <a href="#mio" data-v="mio">
     <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M10 8l-1 8M15 8l-1 8M7.5 10.5h9M7 13.5h9"/></svg><span>Mi número</span></a>
+  <a href="#escanear" data-v="escanear" class="central">
+    <svg viewBox="0 0 24 24"><path d="M4 8V5.5A1.5 1.5 0 0 1 5.5 4H8M16 4h2.5A1.5 1.5 0 0 1 20 5.5V8M20 16v2.5a1.5 1.5 0 0 1-1.5 1.5H16M8 20H5.5A1.5 1.5 0 0 1 4 18.5V16M7 12h10"/></svg><span>Escanear</span></a>
   <a href="#invitar" data-v="invitar">
     <svg viewBox="0 0 24 24"><circle cx="10" cy="8" r="3.5"/><path d="M3.5 20c.8-3.6 3.4-5.5 6.5-5.5s5.7 1.9 6.5 5.5M19 8v6M16 11h6"/></svg><span>Invitar</span></a>
   <a href="#probar" data-v="probar">
     <svg viewBox="0 0 24 24"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></svg><span>Mi badge</span></a>
 </nav>
 
-<script src="config.js?v=12"></script>
+<script src="config.js?v=13"></script>
 <script src="lib/ethers.umd.min.js"></script>
 <script src="lib/qrcode.js"></script>
-<script src="fondo.js?v=12"></script>
-<script src="app.js?v=12"></script>
+<script src="fondo.js?v=13"></script>
+<script src="app.js?v=13"></script>
 </body>
 </html>

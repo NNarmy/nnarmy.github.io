@@ -25,16 +25,30 @@ const ABI = [
 ];
 const ERRORES = { AunNo: "todavía no han pasado las 48 horas", SinRecuperacion: "no hay recuperación pendiente para ese número",
   NoAutorizado: "esta billetera no puede hacer eso", NumeroOcupado: "ese número ya tiene dueño", YaEsMiembro: "esa dirección ya tiene un número",
-  NumeroInvalido: "número inválido", OwnableUnauthorizedAccount: "solo el guardián puede hacer eso" };
+  NumeroInvalido: "número inválido", OwnableUnauthorizedAccount: "solo el guardián puede hacer eso",
+  SoloGuardian: "solo el guardián puede hacer eso", OpcionesInvalidas: "una votación necesita entre 2 y 8 opciones",
+  CierreInvalido: "la fecha de cierre no es válida", TextoInvalido: "el texto está vacío o es demasiado largo" };
 function nombreError(e) {
   if (e?.revert?.name) return e.revert.name;
   // Las billeteras envuelven el error: buscamos los datos del revert en cualquier nivel.
   const datos = JSON.stringify(e, (k, v) => (typeof v === "bigint" ? v.toString() : v)).match(/0x[0-9a-fA-F]{8,}/g) || [];
-  for (const d of datos) { try { const p = contrato.interface.parseError(d); if (p) return p.name; } catch {} }
+  for (const d of datos) for (const i of [contrato.interface, comunidad?.interface].filter(Boolean)) { try { const p = i.parseError(d); if (p) return p.name; } catch {} }
 }
 const error = (e) => ERRORES[nombreError(e)] || e?.shortMessage || e?.reason || e?.message;
 const provider = new ethers.JsonRpcProvider(C.rpc, C.chainId, { staticNetwork: true });
 const contrato = new ethers.Contract(C.contrato, ABI, provider);
+const ABI_COMUNIDAD = [
+  "function totalAnuncios() view returns (uint256)",
+  "function anuncio(uint256) view returns (string texto, uint64 fecha, bool oculto)",
+  "function totalVotaciones() view returns (uint256)",
+  "function votacion(uint256) view returns (string pregunta, string[] opciones, uint64 cierre, uint256[] votos)",
+  "function yaVoto(uint256, uint256) view returns (bool)",
+  "function publicar(string)", "function ocultar(uint256,bool)", "function crearVotacion(string,string[],uint64)",
+  "error SoloGuardian()", "error OpcionesInvalidas()", "error CierreInvalido()", "error TextoInvalido()",
+];
+const comunidad = C.comunidad ? new ethers.Contract(C.comunidad, ABI_COMUNIDAD, provider) : null;
+const DOMINIO_VOTO = comunidad && { name: "Movimiento Comunidad", version: "1", chainId: C.chainId, verifyingContract: C.comunidad };
+const TIPOS_VOTO = { Voto: [{ name: "votacion", type: "uint256" }, { name: "numero", type: "uint256" }, { name: "opcion", type: "uint256" }] };
 const DOMINIO = { name: "Movimiento", version: "1", chainId: C.chainId, verifyingContract: C.contrato };
 const TIPOS = { Invitacion: [
   { name: "invitador", type: "uint256" }, { name: "nonce", type: "uint256" }, { name: "vence", type: "uint256" }] };
@@ -64,6 +78,27 @@ const LLAVE = "movimiento.llave";
 function leerLlave() { try { const f = localStorage.getItem(LLAVE); return f ? ethers.Wallet.fromPhrase(f) : null; } catch { return null; } }
 function crearLlave() { const w = ethers.Wallet.createRandom(); localStorage.setItem(LLAVE, w.mnemonic.phrase); return w; }
 function importarLlave(frase) { const w = ethers.Wallet.fromPhrase(frase.trim().toLowerCase()); localStorage.setItem(LLAVE, w.mnemonic.phrase); return w; }
+
+const RESPALDO = "movimiento.respaldo";
+const respaldoConfirmado = (w) => { try { return localStorage.getItem(RESPALDO) === w.address; } catch { return false; } };
+async function avisoRespaldo() {
+  const el = $("aviso-respaldo"); if (!el) return;
+  try {
+    const [w, n] = await miNumero();
+    el.hidden = !(n && !respaldoConfirmado(w) && !location.hash.startsWith("#mio"));
+  } catch { el.hidden = true; }
+}
+
+// Verifica un codigo de "Mostrar mi badge". Devuelve el numero o lanza un error.
+async function verificarPrueba(dato) {
+  const { n, t, firma } = b64u.dec(dato);
+  const firmante = ethers.verifyMessage(`Movimiento #${n} ${t}`, firma);
+  const dueño = await contrato.ownerOf(n);
+  if (firmante !== dueño) throw new Error(`esta firma no corresponde al dueño del #${n}`);
+  const edad = Math.floor(Date.now() / 1000) - t;
+  if (edad > VALIDEZ_PRUEBA || edad < -30) { const e = new Error(`el código es auténtico pero tiene ${edad} segundos; pide que lo muestren de nuevo en vivo`); e.viejo = true; throw e; }
+  return Number(n);
+}
 
 async function miNumero() {
   const w = leerLlave(); if (!w) return [null, 0];
@@ -104,6 +139,7 @@ const vistas = {
     const orden = lista.map(Number).sort((a, b) => a - b);
     $("lista").innerHTML = orden.map((n, i) => `<span style="animation-delay:${Math.min(i, 40) * 30}ms">#${n}</span>`).join("");
     window.fondo?.miembros(orden);
+    pintarComunidad().catch((e) => console.error(e));
   },
 
   async mio() {
@@ -129,8 +165,27 @@ const vistas = {
     $("importar").onclick = () => { try { importarLlave($("frase-in").value); vistas.mio(); } catch { msg(el, "Esas palabras no son válidas.", "error"); } };
     if ($("crear")) $("crear").onclick = () => { crearLlave(); vistas.mio(); };
     // Los manejadores se ponen al final: innerHTML += borra los que se pusieron antes.
-    if (w) $("ver-frase").onclick = () => { $("frase").innerHTML = `<div class="frase">${esc(w.mnemonic.phrase)}</div>
-        <p class="tenue">Escríbelas en papel y guárdalas. Si pierdes el teléfono, con ellas recuperas tu número. Nunca se las muestres a nadie.</p>`; };
+    if (w) $("ver-frase").onclick = () => {
+      const palabras = w.mnemonic.phrase.split(" ");
+      $("frase").innerHTML = `<ol class="palabras">${palabras.map((p) => `<li>${esc(p)}</li>`).join("")}</ol>
+        <p class="tenue">Escríbelas a mano en papel, en orden, y guárdalo en un lugar seguro. Si pierdes el teléfono, con ellas recuperas tu número. Nunca les tomes foto ni se las muestres a nadie.</p>
+        ${n && !respaldoConfirmado(w) ? `<button id="ya-anote">Ya las anoté en papel</button>` : ""}`;
+      if ($("ya-anote")) $("ya-anote").onclick = () => {
+        const [i, j] = [...ethers.randomBytes(2)].map((b, k) => (b % 6) + k * 6); // una de la 1-6 y otra de la 7-12
+        $("frase").innerHTML = `<p>Para comprobar, escribe de memoria o mirando tu papel:</p>
+          <label class="tenue">Palabra número ${i + 1}</label><input id="q1" autocomplete="off" autocapitalize="none">
+          <label class="tenue">Palabra número ${j + 1}</label><input id="q2" autocomplete="off" autocapitalize="none">
+          <button id="q-ok">Comprobar</button><div id="q-msg"></div>`;
+        $("q-ok").onclick = () => {
+          const ok = $("q1").value.trim().toLowerCase() === palabras[i] && $("q2").value.trim().toLowerCase() === palabras[j];
+          if (!ok) return ($("q-msg").innerHTML = `<p class="msg error">No coinciden. Revisa tu papel y vuelve a intentarlo.</p>`);
+          try { localStorage.setItem(RESPALDO, w.address); } catch {}
+          $("frase").innerHTML = `<p class="msg ok">Perfecto. Tu respaldo está confirmado. Guarda ese papel en un lugar seguro.</p>`;
+          avisoRespaldo();
+        };
+      };
+    };
+    if (w && n && !respaldoConfirmado(w)) $("ver-frase").insertAdjacentHTML("beforebegin", `<p class="msg error">Todavía no confirmas que anotaste tus 12 palabras. Sin ellas, si pierdes el teléfono, pierdes tu llave.</p>`);
   },
 
   async invitar() {
@@ -197,20 +252,65 @@ const vistas = {
   async comprobar(dato) {
     const el = $("comprobar-contenido"); el.innerHTML = "<p class='tenue'>Consultando la cadena…</p>";
     try {
-      const { n, t, firma } = b64u.dec(dato);
-      const edad = Math.floor(Date.now() / 1000) - t;
-      const firmante = ethers.verifyMessage(`Movimiento #${n} ${t}`, firma);
-      const dueño = await contrato.ownerOf(n);
-      if (firmante !== dueño) throw new Error(`esta firma no corresponde al dueño del #${n}`);
-      if (edad > VALIDEZ_PRUEBA || edad < -30) {
-        el.innerHTML = `<p class="msg error">El código es auténtico pero tiene ${edad} segundos. Pide que lo muestren de nuevo en vivo.</p>`; return;
-      }
+      const n = await verificarPrueba(dato);
       el.innerHTML = `<div class="badge centro"><img alt="Badge ${n}" src="${await imagenBadge(n)}"></div>
         <p class="centro msg ok">Verificado: esta persona es el <b>#${esc(n)}</b> del movimiento.</p>`;
     } catch (err) {
       el.innerHTML = `<p class="msg error">No verificado: ${esc(err.shortMessage || err.message)}.</p>`;
     }
   },
+  // ---------- Escaner dentro de la app (y modo encuentro) ----------
+  async escanear() {
+    const el = $("escanear-contenido");
+    const enc = vistas._encuentro;
+    el.innerHTML = `<div id="lector" class="lector"></div>
+      <div id="esc-msg"></div>
+      <div class="bloque">
+        <h3>Modo encuentro</h3>
+        <p class="tenue">Para la entrada de una reunión: escanea el badge de cada persona y la página cuenta cuántos miembros distintos llegaron. No se guarda quiénes: al cerrar o terminar, la cuenta desaparece.</p>
+        ${enc ? `<div class="contador-enc"><span id="enc-total">${enc.size}</span> miembros verificados</div>
+          <button class="secundario" id="enc-fin">Terminar encuentro</button>` : `<button class="secundario" id="enc-ini">Empezar encuentro</button>`}
+      </div>`;
+    if ($("enc-ini")) $("enc-ini").onclick = () => { vistas._encuentro = new Set(); vistas.escanear(); };
+    if ($("enc-fin")) $("enc-fin").onclick = () => {
+      const total = vistas._encuentro.size; vistas._encuentro = null; detenerLector();
+      vistas.escanear().then(() => msg($("esc-msg"), `Encuentro terminado: ${total} miembros verificados. La lista se borró.`, "ok"));
+    };
+    if (!window.Html5Qrcode) { await cargarScript("lib/html5-qrcode.min.js"); }
+    const out = $("esc-msg");
+    let ocupado = false;
+    const alLeer = async (texto) => {
+      if (ocupado) return; ocupado = true;
+      try {
+        const i = texto.indexOf("#");
+        const hash = i >= 0 ? texto.slice(i) : "";
+        const [v, dato] = hash.slice(1).split("=");
+        if (!dato || !["comprobar", "unirse", "reclamar"].includes(v)) throw new Error("este código no es del movimiento");
+        if (vistas._encuentro && v === "comprobar") {
+          const n = await verificarPrueba(dato);
+          const nuevo = !vistas._encuentro.has(n); vistas._encuentro.add(n);
+          $("enc-total").textContent = vistas._encuentro.size;
+          out.innerHTML = `<p class="msg ok">${nuevo ? `#${n} verificado. Bienvenido.` : `#${n} ya estaba contado.`}</p>`;
+          if (navigator.vibrate) navigator.vibrate(nuevo ? 80 : [40, 60, 40]);
+          await new Promise((r) => setTimeout(r, 1800));
+        } else {
+          detenerLector(); location.hash = hash; return;
+        }
+      } catch (e) {
+        out.innerHTML = `<p class="msg error">${esc(e.shortMessage || e.message)}</p>`;
+        await new Promise((r) => setTimeout(r, 1800));
+      }
+      ocupado = false;
+    };
+    try {
+      detenerLector();
+      vistas._lector = new Html5Qrcode("lector", { verbose: false });
+      await vistas._lector.start({ facingMode: "environment" }, { fps: 10, qrbox: (w, h) => { const m = Math.floor(Math.min(w, h) * 0.75); return { width: m, height: m }; } }, alLeer, () => {});
+    } catch (e) {
+      $("lector").innerHTML = `<p class="msg error centro">No se pudo abrir la cámara. Revisa que la página tenga permiso para usarla.</p>`;
+    }
+  },
+
   // ---------- Miembro antiguo: recibe un enlace con su numero y devuelve su direccion al guardian ----------
   async reclamar(dato) {
     const el = $("reclamar-contenido"); el.innerHTML = "";
@@ -254,9 +354,9 @@ const vistas = {
           el.innerHTML = `<p class="msg error">Esta Safe no es la guardiana del contrato.</p>`;
           return;
         }
-        const ejecutor = { safe: true, enviar: async (nombre, args) => {
-          const data = contrato.interface.encodeFunctionData(nombre, args);
-          await safe("sendTransactions", { txs: [{ to: C.contrato, value: "0", data }] });
+        const ejecutor = { safe: true, enviar: async (nombre, args, destino = contrato) => {
+          const data = destino.interface.encodeFunctionData(nombre, args);
+          await safe("sendTransactions", { txs: [{ to: destino.target, value: "0", data }] });
         } };
         return panel(ejecutor);
       } catch (e) { /* no es Safe: seguimos con billetera normal */ }
@@ -286,7 +386,7 @@ const vistas = {
         const yo = await firmante.getAddress();
         if (yo.toLowerCase() !== dueño.toLowerCase()) throw new Error("esta billetera no es la del guardián");
         const g = contrato.connect(firmante);
-        await panel({ safe: false, enviar: async (nombre, args) => { await (await g[nombre](...args)).wait(); } });
+        await panel({ safe: false, enviar: async (nombre, args, destino = contrato) => { await (await destino.connect(firmante)[nombre](...args)).wait(); } });
       } catch (e) { msg(el, `No se pudo conectar: ${e.shortMessage || e.message}`, "error"); }
     };
 
@@ -301,6 +401,18 @@ const vistas = {
           <input id="g-f-num" type="number" placeholder="Número, por ejemplo 200">
           <input id="g-f-dir" placeholder="Dirección anónima 0x… (la ve en Mi número)">
           <button class="secundario" id="g-f-btn">Registrar</button></div>
+        ${comunidad ? `<div class="bloque"><h3>Publicar un anuncio</h3>
+          <p class="tenue">Todos lo verán en Inicio, con la garantía de que lo publicó el guardián. Queda en la cadena para siempre (se puede ocultar, no borrar).</p>
+          <textarea id="g-a-texto" rows="4" placeholder="Mensaje para todo el movimiento"></textarea>
+          <button class="secundario" id="g-a-btn">Publicar anuncio</button>
+          <input id="g-a-ocultar" type="number" min="0" placeholder="Número de anuncio a ocultar (0 = el primero)">
+          <button class="secundario" id="g-a-ocu-btn">Ocultar ese anuncio</button></div>
+        <div class="bloque"><h3>Crear una votación</h3>
+          <p class="tenue">Cada número vota una sola vez desde su teléfono, sin pagar nada. Se ve qué número votó, nunca qué persona.</p>
+          <input id="g-v-preg" placeholder="Pregunta">
+          <textarea id="g-v-ops" rows="3" placeholder="Una opción por línea (de 2 a 8)"></textarea>
+          <input id="g-v-dias" type="number" min="1" max="365" value="7" placeholder="Días que estará abierta">
+          <button class="secundario" id="g-v-btn">Crear votación</button></div>` : ""}
         <div class="bloque"><h3>Invitar a miembros antiguos</h3>
           <p class="tenue">Una línea por persona: número y su WhatsApp (con código de país, ej. 573001234567) o su correo. La lista no se guarda ni se envía a ningún lado: solo arma los mensajes en esta pantalla.</p>
           <textarea id="g-c-lista" rows="4" placeholder="200, 573001234567&#10;201, alguien@correo.com&#10;202"></textarea>
@@ -325,9 +437,9 @@ const vistas = {
         <div id="g-msg"></div>`;
       const out = $("g-msg");
       if (aviso) msg(out, aviso, "ok");
-      const tx = async (boton, nombre, args, ok) => {
+      const tx = async (boton, nombre, args, ok, destino) => {
         boton.disabled = true; const t = boton.textContent; boton.textContent = ej.safe ? "Proponiendo en Safe…" : "Firmando y enviando…";
-        try { await ej.enviar(nombre, args); msg(out, ej.safe ? `Propuesta enviada a la Safe. Cuando firmen los demás: ${ok}` : ok, "ok"); }
+        try { await ej.enviar(nombre, args, destino); msg(out, ej.safe ? `Propuesta enviada a la Safe. Cuando firmen los demás: ${ok}` : ok, "ok"); }
         catch (e) { msg(out, `Error: ${error(e)}`, "error"); }
         boton.disabled = false; boton.textContent = t;
       };
@@ -343,6 +455,16 @@ const vistas = {
       });
       $("g-limite-btn").onclick = seguro((b) => { const n = Number($("g-limite").value); return tx(b, "cambiarLimiteDiario", [n], `Límite cambiado a ${n} por día.`); });
       $("g-f-btn").onclick = seguro((b) => { const n = num("g-f-num"), d = dir("g-f-dir"); return tx(b, "registrarFundador", [d, n], `#${n} registrado.`); });
+      if (comunidad) {
+        $("g-a-btn").onclick = seguro((b) => { const t = $("g-a-texto").value.trim(); if (!t) throw new Error("escribe el anuncio"); return tx(b, "publicar", [t], "Anuncio publicado.", comunidad); });
+        $("g-a-ocu-btn").onclick = seguro((b) => { const id = Number($("g-a-ocultar").value); if (!Number.isInteger(id) || id < 0) throw new Error("número de anuncio inválido"); return tx(b, "ocultar", [id, true], `Anuncio ${id} oculto.`, comunidad); });
+        $("g-v-btn").onclick = seguro((b) => {
+          const p = $("g-v-preg").value.trim(), ops = $("g-v-ops").value.split("\n").map((o) => o.trim()).filter(Boolean), dias = Number($("g-v-dias").value);
+          if (!p) throw new Error("escribe la pregunta"); if (ops.length < 2 || ops.length > 8) throw new Error("pon entre 2 y 8 opciones");
+          if (!(dias >= 1 && dias <= 365)) throw new Error("los días deben estar entre 1 y 365");
+          return tx(b, "crearVotacion", [p, ops, Math.floor(Date.now() / 1000) + Math.round(dias * 86400)], "Votación creada.", comunidad);
+        });
+      }
       $("g-c-btn").onclick = seguro(async () => {
         const filas = $("g-c-lista").value.split(/\n/).map((l) => l.trim()).filter(Boolean).map((l) => {
           const m = l.match(/^#?\s*(\d+)\s*[,;\s]?\s*(.*)$/); if (!m) throw new Error(`no entiendo la línea "${l}"`);
@@ -398,14 +520,70 @@ const vistas = {
   },
 };
 
+function detenerLector() {
+  const l = vistas._lector; vistas._lector = null;
+  if (l) { try { l.stop().then(() => l.clear()).catch(() => {}); } catch {} }
+}
+function cargarScript(src) {
+  return new Promise((ok, mal) => { const s = document.createElement("script"); s.src = src; s.onload = ok; s.onerror = mal; document.head.appendChild(s); });
+}
+
+// ---------- Comunidad: anuncios y votaciones (en Inicio) ----------
+async function pintarComunidad() {
+  const caja = $("comunidad"); if (!caja) return;
+  if (!comunidad) { caja.hidden = true; return; }
+  const [ta, tv] = (await Promise.all([comunidad.totalAnuncios(), comunidad.totalVotaciones()])).map(Number);
+  const anuncios = [];
+  for (let i = ta - 1; i >= 0 && anuncios.length < 3; i--) { const a = await comunidad.anuncio(i); if (!a.oculto) anuncios.push({ id: i, texto: a.texto, fecha: a.fecha }); }
+  const votaciones = [];
+  for (let i = tv - 1; i >= 0 && votaciones.length < 3; i--) votaciones.push({ id: i, ...(await comunidad.votacion(i)).toObject() });
+  const [w, n] = await miNumero().catch(() => [null, 0]);
+  const ahora = Date.now() / 1000;
+  const fecha = (t) => new Date(Number(t) * 1000).toLocaleDateString("es", { day: "numeric", month: "long", year: "numeric" });
+  let html = "";
+  if (anuncios.length) html += `<div class="tarjeta"><h2>Anuncios</h2>${anuncios.map((a) => `<article class="anuncio">
+      <p>${esc(a.texto).replace(/\n/g, "<br>")}</p><p class="tenue">Anuncio ${a.id} · ${fecha(a.fecha)} · <span class="firmado">publicado por el guardián en la cadena</span></p></article>`).join("")}</div>`;
+  for (const v of votaciones) {
+    const abierta = Number(v.cierre) > ahora;
+    const total = v.votos.reduce((s, x) => s + Number(x), 0);
+    const voté = n ? await comunidad.yaVoto(v.id, n) : false;
+    const puede = abierta && n && !voté;
+    html += `<div class="tarjeta votacion"><p class="etiqueta">${abierta ? "Votación abierta" : "Votación cerrada"}</p><h3>${esc(v.pregunta)}</h3>
+      ${v.opciones.map((o, i) => { const pct = total ? Math.round((Number(v.votos[i]) / total) * 100) : 0;
+        return puede ? `<button class="secundario opcion" data-v="${v.id}" data-o="${i}">${esc(o)}</button>`
+          : `<div class="resultado"><div class="barra" style="width:${pct}%"></div><span>${esc(o)}</span><b>${pct}%</b></div>`; }).join("")}
+      <p class="tenue">${total} ${total === 1 ? "voto" : "votos"} · ${abierta ? `cierra el ${fecha(v.cierre)}` : `cerró el ${fecha(v.cierre)}`}${voté ? " · tu número ya votó" : ""}${abierta && !n ? " · solo votan los miembros desde su teléfono" : ""}</p>
+      <div class="v-msg"></div></div>`;
+  }
+  caja.innerHTML = html; caja.hidden = !html;
+  caja.querySelectorAll("button.opcion").forEach((b) => b.onclick = async () => {
+    const id = Number(b.dataset.v), opcion = Number(b.dataset.o);
+    const tarjeta = b.closest(".votacion");
+    if (!confirm(`¿Votar "${b.textContent}"? Tu número solo puede votar una vez.`)) return;
+    tarjeta.querySelectorAll("button").forEach((x) => (x.disabled = true)); b.textContent = "Enviando voto…";
+    try {
+      const firma = await w.signTypedData(DOMINIO_VOTO, TIPOS_VOTO, { votacion: id, numero: n, opcion });
+      const r = await fetch(`${C.patrocinador}/votar`, { method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ votacion: id, numero: n, opcion, firma }) });
+      const res = await r.json(); if (!r.ok) throw new Error(res.error || "error");
+      await pintarComunidad();
+    } catch (e) {
+      tarjeta.querySelectorAll("button").forEach((x) => (x.disabled = false));
+      tarjeta.querySelector(".v-msg").innerHTML = `<p class="msg error">No se pudo votar: ${esc(e.message)}.</p>`;
+    }
+  });
+}
+
 async function ruta() {
   clearInterval(vistas._timer);
+  detenerLector();
   const h = location.hash.slice(1) || (enSafe ? "guardian" : "inicio");
   const [v, dato] = h.split("=");
   const vista = vistas[v] ? v : "inicio";
   document.body.dataset.vista = vista; scrollTo({ top: 0 });
   document.querySelectorAll("section").forEach((s) => s.classList.toggle("activa", s.id === `v-${vista}`));
   document.querySelectorAll("nav a").forEach((a) => a.classList.toggle("activo", a.dataset.v === vista));
+  avisoRespaldo();
   try { await vistas[vista](dato); } catch (e) { console.error(e); msg($(`v-${vista}`), "No se pudo conectar con la cadena. Intenta más tarde.", "error"); }
 }
 window.addEventListener("hashchange", ruta);

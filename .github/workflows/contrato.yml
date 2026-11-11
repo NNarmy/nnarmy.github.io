@@ -2,9 +2,11 @@ name: Desplegar contrato
 on:
   workflow_dispatch:
     inputs:
+      accion: { description: "desplegar o fundador", default: "desplegar", required: true }
       red: { description: "base (real) o baseSepolia (pruebas)", default: "base", required: true }
-      guardian: { description: "Dirección de la billetera principal de ian (guardián)", required: true }
-      fundador: { description: "Dirección del #1313 (se ve en Mi número). Vacío = se registra después", required: false }
+      contrato: { description: "Solo para 'fundador': dirección del contrato ya publicado", required: false }
+      fundador: { description: "Dirección del #1313 (se ve en Mi número)", required: false }
+      guardian: { description: "Billetera guardián de ian", default: "0x08EdCa6b1c4300Ae00F185CbB1e00945734Eaf9C", required: false }
 jobs:
   desplegar:
     runs-on: ubuntu-latest
@@ -14,10 +16,11 @@ jobs:
         with: { node-version: 22 }
       - run: npm ci --legacy-peer-deps
       - run: npx hardhat test
-      - name: Desplegar
-        run: npx hardhat run scripts/deploy.js --network ${{ inputs.red }}
+      - name: Ejecutar
+        run: npx hardhat run scripts/${{ inputs.accion == 'fundador' && 'fundador' || 'deploy' }}.js --network ${{ inputs.red }}
         env:
           PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
           MNEMONIC: ${{ secrets.MNEMONIC }}
+          CONTRATO: ${{ inputs.contrato }}
           FUNDADOR: ${{ inputs.fundador }}
           GUARDIAN: ${{ inputs.guardian }}

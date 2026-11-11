@@ -1,0 +1,29 @@
+name: Vigía
+# Cada 15 minutos: mantiene despierto al patrocinador, avisa por ntfy de anuncios y votaciones nuevas,
+# y una vez al día agrega un punto a la historia del movimiento (web/historia.json).
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency: { group: vigia, cancel-in-progress: false }
+jobs:
+  vigilar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Despertar al patrocinador
+        run: curl -s -m 90 https://movimiento-patrocinador.onrender.com/ || true
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: node scripts/vigia.js
+      - name: Guardar
+        run: |
+          git config user.name "copia-automatica"
+          git config user.email "actions@users.noreply.github.com"
+          git add respaldo/vigia.json web/historia.json 2>/dev/null || true
+          git diff --cached --quiet && exit 0
+          git commit -m "Vigía $(date -u +%F)"
+          git pull --rebase origin main && git push

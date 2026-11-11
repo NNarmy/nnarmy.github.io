@@ -14,7 +14,7 @@
 <meta name="apple-mobile-web-app-title" content="Movimiento">
 <link rel="preload" href="fuentes/cormorant-400-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fuentes/inter.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="estilo.css?v=13">
+<link rel="stylesheet" href="estilo.css?v=15">
 </head>
 <body data-vista="inicio">
 <canvas id="cielo" aria-hidden="true"></canvas>
@@ -35,6 +35,8 @@
       <div class="grande" id="total">·</div>
       <p class="tenue centro">miembros registrados para siempre en la cadena</p>
     </div>
+
+    <div id="bondad" class="tarjeta contador" hidden></div>
 
     <div id="comunidad" hidden></div>
 
@@ -63,10 +65,14 @@
       </article>
     </div>
 
+    <div id="historia" class="tarjeta" hidden></div>
+
     <div class="tarjeta">
       <h2 class="centro">Los números</h2>
       <div class="numeros" id="lista"></div>
     </div>
+
+    <div id="avisos" class="tarjeta" hidden></div>
 
     <a class="enlace-manual" href="manual.html">Leer el manual del miembro <span>→</span></a>
   </section>
@@ -132,10 +138,10 @@
     <svg viewBox="0 0 24 24"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></svg><span>Mi badge</span></a>
 </nav>
 
-<script src="config.js?v=14"></script>
+<script src="config.js?v=15"></script>
 <script src="lib/ethers.umd.min.js"></script>
 <script src="lib/qrcode.js"></script>
-<script src="fondo.js?v=13"></script>
-<script src="app.js?v=14"></script>
+<script src="fondo.js?v=15"></script>
+<script src="app.js?v=15"></script>
 </body>
 </html>

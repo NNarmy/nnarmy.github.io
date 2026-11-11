@@ -13,5 +13,7 @@ services:
         value: "0x8c6ACA8E53BaA96627DFF40552B5f328dCA8F230"
       - key: COMUNIDAD
         value: "0x5f3D0d7FE55A8557688a255DfB5E8717e3f6b251"
+      - key: BONDAD
+        value: "0xBFa670CAcE5217391cb8772AD2F181c5b2a1Aef6"
       - key: RPC_URL
         value: https://mainnet.base.org

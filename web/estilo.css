@@ -160,3 +160,13 @@ label { display:block; margin-top:12px; }
 .carta { margin:0 0 18px; padding:18px 20px; border-radius:16px; background:rgba(217,185,106,.07); border-left:3px solid var(--oro);
   font:italic 400 21px/1.45 var(--serif); color:var(--texto); }
 .carta cite { display:block; margin-top:10px; font:500 13px var(--sans); color:var(--oro); font-style:normal; letter-spacing:.08em; }
+
+.grande.dos { font-size:76px; }
+.hecho { color:var(--oro-claro); font:italic 400 19px var(--serif); margin-top:14px; }
+.celebra { animation:celebra 1.6s ease-out; }
+@keyframes celebra { 0% { box-shadow:0 0 0 0 rgba(251,238,194,.0); } 30% { box-shadow:0 0 0 10px rgba(251,238,194,.25), 0 0 80px rgba(217,185,106,.6); } 100% { box-shadow:0 0 0 0 rgba(251,238,194,0); } }
+.grafica { width:100%; height:auto; display:block; margin-top:6px; }
+.ejes { display:flex; justify-content:space-between; font-size:12px; margin-top:4px; }
+a.boton.secundario-a { background:rgba(217,185,106,.06); color:var(--oro-claro); border:1px solid var(--linea-fuerte); box-shadow:none; }
+a.boton.secundario-a::after { display:none; }
+.qr img { width:min(280px, 72vw); height:auto; }

@@ -49,6 +49,9 @@ const ABI_COMUNIDAD = [
 const comunidad = C.comunidad ? new ethers.Contract(C.comunidad, ABI_COMUNIDAD, provider) : null;
 const DOMINIO_VOTO = comunidad && { name: "Movimiento Comunidad", version: "1", chainId: C.chainId, verifyingContract: C.comunidad };
 const TIPOS_VOTO = { Voto: [{ name: "votacion", type: "uint256" }, { name: "numero", type: "uint256" }, { name: "opcion", type: "uint256" }] };
+const ABI_BONDAD = ["function total() view returns (uint256)", "function delDia(uint256) view returns (uint256)", "function hoy() view returns (uint256)",
+  "function yaMarco(uint256,uint256) view returns (bool)"];
+const bondadC = C.bondad ? new ethers.Contract(C.bondad, ABI_BONDAD, provider) : null;
 const DOMINIO = { name: "Movimiento", version: "1", chainId: C.chainId, verifyingContract: C.contrato };
 const TIPOS = { Invitacion: [
   { name: "invitador", type: "uint256" }, { name: "nonce", type: "uint256" }, { name: "vence", type: "uint256" }] };
@@ -142,6 +145,9 @@ const vistas = {
     $("lista").innerHTML = orden.map((n, i) => `<span style="animation-delay:${Math.min(i, 40) * 30}ms">#${n}</span>`).join("");
     window.fondo?.miembros(orden);
     pintarComunidad().catch((e) => console.error(e));
+    pintarBondad().catch((e) => console.error(e));
+    pintarHistoria().catch((e) => console.error(e));
+    pintarAvisos();
   },
 
   async mio() {
@@ -591,6 +597,81 @@ async function pintarComunidad() {
       tarjeta.querySelector(".v-msg").innerHTML = `<p class="msg error">No se pudo votar: ${esc(e.message)}.</p>`;
     }
   });
+}
+
+// ---------- Contador de bondad ----------
+const MIS_ACTOS = "movimiento.bondad";
+async function pintarBondad() {
+  const caja = $("bondad"); if (!caja) return;
+  if (!bondadC) { caja.hidden = true; return; }
+  const [total, hoy] = await Promise.all([bondadC.total(), bondadC.hoy()]);
+  const deHoy = await bondadC.delDia(hoy);
+  const [w, n] = await miNumero().catch(() => [null, 0]);
+  const ya = n ? await bondadC.yaMarco(n, hoy) : false;
+  let mios = 0; try { mios = Number(localStorage.getItem(MIS_ACTOS) || 0); } catch {}
+  caja.innerHTML = `<p class="etiqueta">Actos de bondad</p>
+    <div class="grande dos" id="bondad-total">${total}</div>
+    <p class="tenue centro">${deHoy} hoy · nadie sabe cuáles ni de quién</p>
+    ${n ? (ya ? `<p class="centro hecho">✦ Tu acto de hoy ya está contado${mios ? ` · llevas ${mios}` : ""}</p>`
+      : `<button id="bondad-btn">Hoy hice un acto de bondad</button>`)
+      : `<p class="tenue centro">Cada miembro marca aquí, una vez al día, que hizo algo bueno por alguien. Sin decir qué.</p>`}
+    <div id="bondad-msg"></div>`;
+  caja.hidden = false;
+  if ($("bondad-btn")) $("bondad-btn").onclick = async (e) => {
+    const b = e.target; b.disabled = true; b.textContent = "Contando…";
+    try {
+      const dominio = { name: "Movimiento Bondad", version: "1", chainId: C.chainId, verifyingContract: C.bondad };
+      const firma = await w.signTypedData(dominio, { Acto: [{ name: "numero", type: "uint256" }, { name: "dia", type: "uint256" }] }, { numero: n, dia: hoy });
+      const r = await fetch(`${C.patrocinador}/bondad`, { method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ numero: n, dia: hoy.toString(), firma }) });
+      const res = await r.json(); if (!r.ok) throw new Error(res.error || "error");
+      try { localStorage.setItem(MIS_ACTOS, String(mios + 1)); } catch {}
+      caja.classList.add("celebra"); setTimeout(() => caja.classList.remove("celebra"), 1600);
+      await pintarBondad();
+    } catch (err) {
+      b.disabled = false; b.textContent = "Hoy hice un acto de bondad";
+      $("bondad-msg").innerHTML = `<p class="msg error">No se pudo contar: ${esc(err.message)}.</p>`;
+    }
+  };
+}
+
+// ---------- Historia del movimiento ----------
+async function pintarHistoria() {
+  const caja = $("historia"); if (!caja) return;
+  let datos = [];
+  try { datos = await (await fetch(`historia.json?${Date.now()}`)).json(); } catch { return; }
+  if (!Array.isArray(datos) || !datos.length) return;
+  const W = 320, H = 140, P = 10;
+  const max = Math.max(1, ...datos.map((d) => d.miembros));
+  const x = (i) => datos.length === 1 ? W / 2 : P + (i * (W - 2 * P)) / (datos.length - 1);
+  const y = (v) => H - P - (v / max) * (H - 2 * P);
+  const puntos = datos.map((d, i) => `${x(i).toFixed(1)},${y(d.miembros).toFixed(1)}`).join(" ");
+  const area = `${x(0)},${H - P} ${puntos} ${x(datos.length - 1)},${H - P}`;
+  const f = (s) => new Date(s + "T12:00:00Z").toLocaleDateString("es", { day: "numeric", month: "short", year: "numeric" });
+  caja.innerHTML = `<h2>Nuestra historia</h2>
+    <svg viewBox="0 0 ${W} ${H}" class="grafica" role="img" aria-label="Miembros a lo largo del tiempo">
+      <defs><linearGradient id="g-area" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d9b96a" stop-opacity=".35"/><stop offset="1" stop-color="#d9b96a" stop-opacity="0"/></linearGradient></defs>
+      ${datos.length > 1 ? `<polygon points="${area}" fill="url(#g-area)"/><polyline points="${puntos}" fill="none" stroke="#e9d49a" stroke-width="2" stroke-linejoin="round"/>` : ""}
+      ${datos.map((d, i) => `<circle cx="${x(i)}" cy="${y(d.miembros)}" r="3" fill="#fff6d8"/>`).join("")}
+    </svg>
+    <div class="ejes tenue"><span>${f(datos[0].fecha)}</span><span>${f(datos[datos.length - 1].fecha)}</span></div>
+    <p class="tenue centro">${datos.length === 1 ? "La historia empieza aquí. Cada día se agrega un punto." : `De ${datos[0].miembros} a ${datos[datos.length - 1].miembros} miembros.`}</p>`;
+  caja.hidden = false;
+}
+
+// ---------- Avisos al telefono (ntfy) ----------
+function pintarAvisos() {
+  const caja = $("avisos"); if (!caja || !C.avisos) return;
+  caja.innerHTML = `<h2>Recibe los avisos</h2>
+    <p>Te llega una notificación cuando el guardián publica un anuncio o abre una votación. No se pide ningún dato tuyo.</p>
+    <ol class="tenue">
+      <li>Instala la app gratuita <b>ntfy</b>: <a href="https://play.google.com/store/apps/details?id=io.heckel.ntfy" target="_blank" rel="noopener">Android</a> · <a href="https://apps.apple.com/app/ntfy/id1625396347" target="_blank" rel="noopener">iPhone</a></li>
+      <li>Toca <b>+</b> (suscribirse) y escribe este tema: <code>${esc(C.avisos)}</code></li>
+    </ol>
+    <button class="secundario" id="avisos-copiar">Copiar el tema</button>
+    <a class="boton secundario-a" href="https://ntfy.sh/${encodeURIComponent(C.avisos)}" target="_blank" rel="noopener">O recibirlos en el navegador</a>`;
+  caja.hidden = false;
+  $("avisos-copiar").onclick = () => navigator.clipboard?.writeText(C.avisos).then(() => ($("avisos-copiar").textContent = "Tema copiado ✓"));
 }
 
 async function ruta() {

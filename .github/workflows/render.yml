@@ -4,6 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       comunidad: { description: "Dirección del contrato de Comunidad", default: "0x5f3D0d7FE55A8557688a255DfB5E8717e3f6b251", required: true }
+      bondad: { description: "Dirección del contador de bondad", default: "0xBFa670CAcE5217391cb8772AD2F181c5b2a1Aef6", required: true }
 permissions: {}
 jobs:
   actualizar:
@@ -20,10 +21,12 @@ jobs:
           id=$(echo "$s" | jq -r '.[0].service.id')
           echo "Servicio: $id"; echo "$s" | jq '.[0].service | {repo, branch, rootDir: .rootDir, suspended}'
           test "$id" != "null" && echo "ID=$id" >> $GITHUB_ENV
-      - name: Variable COMUNIDAD
+      - name: Variables COMUNIDAD y BONDAD
         run: |
           curl -sf -X PUT -H "Authorization: Bearer $K" -H "Content-Type: application/json" \
             -d '{"value":"${{ inputs.comunidad }}"}' "$API/services/$ID/env-vars/COMUNIDAD" | jq '{key, value}'
+          curl -sf -X PUT -H "Authorization: Bearer $K" -H "Content-Type: application/json" \
+            -d '{"value":"${{ inputs.bondad }}"}' "$API/services/$ID/env-vars/BONDAD" | jq '{key, value}'
       - name: Desplegar y esperar
         run: |
           d=$(curl -sf -X POST -H "Authorization: Bearer $K" -H "Content-Type: application/json" -d '{"clearCache":"do_not_clear"}' "$API/services/$ID/deploys")

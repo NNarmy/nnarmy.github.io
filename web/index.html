@@ -52,17 +52,41 @@
     <p>La revolución silenciosa. Aquí no hay nombres, hay números.</p>
   </header>
   <nav>
-    <a href="#inicio" data-v="inicio">Somos</a>
+    <a href="#inicio" data-v="inicio">Inicio</a>
     <a href="#mio" data-v="mio">Mi número</a>
     <a href="#invitar" data-v="invitar">Invitar</a>
     <a href="#probar" data-v="probar">Mostrar mi badge</a>
   </nav>
 
   <section id="v-inicio">
-    <h2 class="centro">Cuántos somos</h2>
+    <p class="centro" style="font-size:19px;margin-top:0">Un movimiento de personas con bondad en el corazón que se reconocen por un número, no por un nombre.</p>
+
+    <div class="bloque">
+      <h3>Qué es</h3>
+      <p>Cada miembro tiene un número que es suyo para siempre. No hay nombres, ni fotos, ni correos, ni datos personales. Solo números, registrados en una cadena pública que nadie puede borrar ni alterar.</p>
+    </div>
+
+    <div class="bloque">
+      <h3>Cómo se entra</h3>
+      <p>Nadie se inscribe solo. Un miembro te invita en persona mostrándote un código. Al escanearlo recibes el siguiente número, y ese número no se puede vender, regalar ni transferir. Es tuyo.</p>
+    </div>
+
+    <div class="bloque">
+      <h3>Cómo nos reconocemos</h3>
+      <p>Si alguien dice ser miembro, pídele que te muestre su badge. Escaneas el código que aparece en su teléfono y la página te dice si de verdad es ese número. El código cambia cada 20 segundos, así que no sirve una foto.</p>
+    </div>
+
+    <div class="bloque">
+      <h3>Lo que no es</h3>
+      <p>No es una criptomoneda ni una inversión. No se vende nada y no cuesta nada. No se guarda ningún dato tuyo. El registro y el código de esta página son abiertos: cualquiera puede revisarlos.</p>
+    </div>
+
+    <div class="bloque">
+      <h2 class="centro">Cuántos somos</h2>
     <div class="grande" id="total">…</div>
     <p class="centro tenue">miembros registrados para siempre en la cadena</p>
     <div class="numeros" id="lista"></div>
+    </div>
   </section>
 
   <section id="v-mio">
@@ -98,9 +122,9 @@
 </main>
 <footer style="text-align:center;padding:0 16px 32px"><a href="#guardian" style="color:var(--tenue);font-size:13px">Guardián</a></footer>
 
-<script src="config.js?v=8"></script>
+<script src="config.js?v=9"></script>
 <script src="lib/ethers.umd.min.js"></script>
 <script src="lib/qrcode.js"></script>
-<script src="app.js?v=8"></script>
+<script src="app.js?v=9"></script>
 </body>
 </html>

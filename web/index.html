@@ -42,6 +42,9 @@
   .bloque { border-top:1px solid var(--borde); margin-top:20px; padding-top:16px; }
   .bloque h3 { font-weight:normal; color:var(--oro); margin:0 0 8px; font-size:17px; }
   textarea { width:100%; background:var(--fondo); color:var(--texto); border:1px solid var(--borde); border-radius:10px; padding:10px; font:inherit; }
+  a.boton { display:block; text-align:center; background:var(--oro); color:var(--fondo); border-radius:10px; padding:12px 18px; margin-top:12px; text-decoration:none; }
+  a.boton.chico { display:inline-block; padding:4px 12px; margin:4px 0 0 6px; font-size:14px; }
+  .fila-inv { border-bottom:1px solid var(--borde); padding:8px 0; }
   code { font-size:12px; word-break:break-all; color:var(--tenue); }
 </style>
 </head>
@@ -115,6 +118,11 @@
     <h2>Comprobación</h2>
     <div id="comprobar-contenido"></div>
   </section>
+  <section id="v-reclamar">
+    <h2>Tu número de siempre</h2>
+    <div id="reclamar-contenido"></div>
+  </section>
+
   <section id="v-guardian">
     <h2>Panel del guardián</h2>
     <div id="guardian-contenido"></div>
@@ -122,9 +130,9 @@
 </main>
 <footer style="text-align:center;padding:0 16px 32px"><a href="#guardian" style="color:var(--tenue);font-size:13px">Guardián</a></footer>
 
-<script src="config.js?v=9"></script>
+<script src="config.js?v=10"></script>
 <script src="lib/ethers.umd.min.js"></script>
 <script src="lib/qrcode.js"></script>
-<script src="app.js?v=9"></script>
+<script src="app.js?v=10"></script>
 </body>
 </html>

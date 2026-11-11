@@ -14,12 +14,14 @@ const ABI = [
   "function pausar(bool)",
   "function cambiarLimiteDiario(uint256)",
   "function registrarFundador(address,uint256)",
+  "function importar(address[],uint256[])",
+  "function existe(uint256) view returns (bool)",
   "function proponerRecuperacion(uint256,address)",
   "function cancelarRecuperacion(uint256)",
   "function ejecutarRecuperacion(uint256)",
   "function transferOwnership(address)",
   "error AunNo(uint256 listo)", "error SinRecuperacion()", "error NoAutorizado()", "error NumeroOcupado(uint256)",
-  "error YaEsMiembro(address)", "error NumeroInvalido()", "error OwnableUnauthorizedAccount(address)",
+  "error YaEsMiembro(address)", "error NumeroInvalido()", "error OwnableUnauthorizedAccount(address)", "error LargosDistintos()",
 ];
 const ERRORES = { AunNo: "todavía no han pasado las 48 horas", SinRecuperacion: "no hay recuperación pendiente para ese número",
   NoAutorizado: "esta billetera no puede hacer eso", NumeroOcupado: "ese número ya tiene dueño", YaEsMiembro: "esa dirección ya tiene un número",
@@ -37,6 +39,7 @@ const DOMINIO = { name: "Movimiento", version: "1", chainId: C.chainId, verifyin
 const TIPOS = { Invitacion: [
   { name: "invitador", type: "uint256" }, { name: "nonce", type: "uint256" }, { name: "vence", type: "uint256" }] };
 const VALIDEZ_PRUEBA = 90; // segundos
+const LOTE = 150; // miembros antiguos por transaccion
 
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -200,6 +203,30 @@ const vistas = {
       el.innerHTML = `<p class="msg error">No verificado: ${esc(err.shortMessage || err.message)}.</p>`;
     }
   },
+  // ---------- Miembro antiguo: recibe un enlace con su numero y devuelve su direccion al guardian ----------
+  async reclamar(dato) {
+    const el = $("reclamar-contenido"); el.innerHTML = "";
+    const n = Number(dato);
+    if (!Number.isInteger(n) || n <= 0) { el.innerHTML = `<p class="msg error">Este enlace no es válido.</p>`; return; }
+    const [w0, mio] = await miNumero();
+    if (mio) { el.innerHTML = `<p>Este teléfono ya tiene el <b>#${mio}</b>. Cada persona tiene un solo número.</p>`; return; }
+    if (await contrato.existe(n)) { el.innerHTML = `<p>El <b>#${n}</b> ya está registrado en la cadena. Si es tuyo y perdiste la llave, avísale al guardián.</p>`; return; }
+    const mostrar = (w) => {
+      const texto = `Movimiento #${n} ${w.address}`;
+      el.innerHTML = `<p>Tu llave está lista. Ahora envía este código a quien te mandó el enlace, respondiendo el mismo mensaje:</p>
+        <div class="frase">${esc(texto)}</div>
+        <a class="boton" href="https://wa.me/?text=${encodeURIComponent(texto)}" target="_blank" rel="noopener">Responder por WhatsApp</a>
+        <button class="secundario" id="r-copiar">Copiar código</button>
+        <p class="tenue">Este código no es secreto: solo dice a qué llave va tu número. Cuando el guardián lo registre, verás tu badge en "Mi número". Allí guarda también tus 12 palabras en papel.</p>`;
+      $("r-copiar").onclick = () => navigator.clipboard?.writeText(texto).then(() => msg(el, "Código copiado.", "ok"));
+    };
+    if (w0) return mostrar(w0);
+    el.innerHTML = `<p>Eres el <b>#${n}</b> del movimiento. Para dejar tu número registrado para siempre en la cadena, este teléfono necesita una llave anónima.</p>
+      <p class="tenue">No se pide nombre, correo ni ningún dato tuyo. No cuesta nada.</p>
+      <button id="r-crear">Crear mi llave</button>`;
+    $("r-crear").onclick = () => mostrar(crearLlave());
+  },
+
   // ---------- Panel del guardian: se usa desde el navegador de Trust Wallet (o MetaMask) ----------
   async guardian() {
     const el = $("guardian-contenido");
@@ -266,6 +293,14 @@ const vistas = {
           <input id="g-f-num" type="number" placeholder="Número, por ejemplo 200">
           <input id="g-f-dir" placeholder="Dirección anónima 0x… (la ve en Mi número)">
           <button class="secundario" id="g-f-btn">Registrar</button></div>
+        <div class="bloque"><h3>Invitar a miembros antiguos</h3>
+          <p class="tenue">Una línea por persona: número y su WhatsApp (con código de país, ej. 573001234567) o su correo. La lista no se guarda ni se envía a ningún lado: solo arma los mensajes en esta pantalla.</p>
+          <textarea id="g-c-lista" rows="4" placeholder="200, 573001234567&#10;201, alguien@correo.com&#10;202"></textarea>
+          <button class="secundario" id="g-c-btn">Preparar invitaciones</button><div id="g-c-out"></div></div>
+        <div class="bloque"><h3>Registrar los códigos que te devuelvan</h3>
+          <p class="tenue">Pega los códigos tal como llegan, uno por línea ("Movimiento #200 0x…"). Se registran de a ${LOTE} por transacción.</p>
+          <textarea id="g-l-lista" rows="4" placeholder="Movimiento #200 0x…"></textarea>
+          <button class="secundario" id="g-l-btn">Registrar la lista</button></div>
         <div class="bloque"><h3>Recuperar un número perdido</h3>
           <p class="tenue">La persona crea una llave nueva en su teléfono y te da su dirección. El cambio se aplica 48 horas después; mientras tanto el dueño actual o tú pueden cancelarlo.</p>
           <input id="g-r-num" type="number" placeholder="Número a recuperar">
@@ -300,6 +335,43 @@ const vistas = {
       });
       $("g-limite-btn").onclick = seguro((b) => { const n = Number($("g-limite").value); return tx(b, "cambiarLimiteDiario", [n], `Límite cambiado a ${n} por día.`); });
       $("g-f-btn").onclick = seguro((b) => { const n = num("g-f-num"), d = dir("g-f-dir"); return tx(b, "registrarFundador", [d, n], `#${n} registrado.`); });
+      $("g-c-btn").onclick = seguro(async () => {
+        const filas = $("g-c-lista").value.split(/\n/).map((l) => l.trim()).filter(Boolean).map((l) => {
+          const m = l.match(/^#?\s*(\d+)\s*[,;\s]?\s*(.*)$/); if (!m) throw new Error(`no entiendo la línea "${l}"`);
+          return { n: Number(m[1]), contacto: m[2].trim() };
+        });
+        if (!filas.length) throw new Error("la lista está vacía");
+        $("g-c-out").innerHTML = filas.map(({ n, contacto }) => {
+          const enlace = `${base()}#reclamar=${n}`;
+          const texto = `Hola. Eres el #${n} del movimiento. Abre este enlace para dejar tu número registrado para siempre: ${enlace}\nDespués respóndeme con el código que te aparece.`;
+          const tel = contacto.replace(/[^\d]/g, "");
+          const wa = `https://wa.me/${contacto.includes("@") ? "" : tel}?text=${encodeURIComponent(texto)}`;
+          const correo = `mailto:${contacto.includes("@") ? esc(contacto.replace(/[\s?&]/g, "")) : ""}?subject=${encodeURIComponent(`Tu número #${n}`)}&body=${encodeURIComponent(texto)}`;
+          return `<div class="fila-inv"><b>#${n}</b> <span class="tenue">${esc(contacto)}</span>
+            ${contacto.includes("@") ? "" : `<a class="boton chico" href="${wa}" target="_blank" rel="noopener">WhatsApp</a>`}
+            ${tel && !contacto.includes("@") ? "" : `<a class="boton chico" href="${correo}">Correo</a>`}</div>`;
+        }).join("");
+      });
+      $("g-l-btn").onclick = seguro(async (b) => {
+        const pares = [...$("g-l-lista").value.matchAll(/#\s*(\d+)\D+?(0x[0-9a-fA-F]{40})/g)].map((m) => ({ n: Number(m[1]), d: ethers.getAddress(m[2]) }));
+        if (!pares.length) throw new Error("no encontré códigos válidos");
+        const vistos = new Set();
+        for (const { n, d } of pares) {
+          if (vistos.has(n) || vistos.has(d)) throw new Error(`#${n} o su dirección aparece dos veces`); vistos.add(n); vistos.add(d);
+          if (await contrato.existe(n)) throw new Error(`el #${n} ya está registrado`);
+          if (Number(await contrato.numeroDe(d))) throw new Error(`la dirección del #${n} ya tiene número`);
+        }
+        b.disabled = true; const t = b.textContent;
+        try {
+          for (let i = 0; i < pares.length; i += LOTE) {
+            const lote = pares.slice(i, i + LOTE);
+            b.textContent = `Enviando ${i + 1}–${i + lote.length} de ${pares.length}…`;
+            await ej.enviar("importar", [lote.map((p) => p.d), lote.map((p) => p.n)]);
+            msg(out, `${ej.safe ? "Propuesto en la Safe" : "Registrados"}: ${lote.map((p) => "#" + p.n).join(", ")}.`, "ok");
+          }
+        } catch (e) { msg(out, `Error: ${error(e)}. Los lotes anteriores ya quedaron.`, "error"); }
+        b.disabled = false; b.textContent = t;
+      });
       $("g-r-ver").onclick = seguro(async () => {
         const n = num("g-r-num"); const r = await contrato.recuperaciones(n);
         if (!Number(r.listo)) return msg(out, `#${n}: no hay recuperación pendiente. Dueño actual: ${await contrato.ownerOf(n)}`);

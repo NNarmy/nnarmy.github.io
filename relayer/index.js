@@ -1,5 +1,5 @@
 // Patrocinador de gas: recibe invitaciones firmadas y las envia a la cadena pagando el gas.
-// Uso: PRIVATE_KEY=0x... CONTRATO=0x... RPC_URL=https://sepolia.base.org node relayer.js
+// Uso: MNEMONIC="12 palabras" (o PRIVATE_KEY=0x...) CONTRATO=0x... RPC_URL=https://mainnet.base.org node index.js
 // No guarda nada. Solo envia transacciones validas (las simula antes).
 const http = require("http");
 const { ethers } = require("ethers");
@@ -10,8 +10,9 @@ const ABI = [
 const MENSAJES = { InvitacionUsada: "esta invitación ya se usó", InvitacionVencida: "esta invitación venció",
   FirmaInvalida: "la invitación no es de un miembro", YaEsMiembro: "esta llave ya tiene número",
   Pausado: "las invitaciones están pausadas por ahora", LimiteDiario: "este miembro ya invitó a muchas personas hoy, prueba mañana" };
-const wallet = new ethers.Wallet(process.env.PRIVATE_KEY, new ethers.JsonRpcProvider(process.env.RPC_URL));
-const c = new ethers.Contract(process.env.CONTRATO, ABI, wallet);
+const provider = new ethers.JsonRpcProvider(process.env.RPC_URL || "https://mainnet.base.org");
+const wallet = (process.env.PRIVATE_KEY ? new ethers.Wallet(process.env.PRIVATE_KEY) : ethers.Wallet.fromPhrase(process.env.MNEMONIC.trim())).connect(provider);
+const c = new ethers.Contract(process.env.CONTRATO || "0x8c6ACA8E53BaA96627DFF40552B5f328dCA8F230", ABI, wallet);
 const PORT = Number(process.env.PORT || 8787);
 
 function enviar(res, code, obj) {
@@ -21,6 +22,7 @@ function enviar(res, code, obj) {
 
 http.createServer(async (req, res) => {
   if (req.method === "OPTIONS") return enviar(res, 204, {});
+  if (req.method === "GET" && req.url === "/") return enviar(res, 200, { ok: true, patrocinador: wallet.address });
   if (req.method !== "POST" || req.url !== "/unirse") return enviar(res, 404, { error: "no encontrado" });
   let body = "";
   req.on("data", (d) => { body += d; if (body.length > 4000) req.destroy(); });

@@ -1,0 +1,7 @@
+{
+  "name": "movimiento-patrocinador",
+  "private": true,
+  "scripts": { "start": "node index.js" },
+  "engines": { "node": ">=20" },
+  "dependencies": { "ethers": "6.13.4" }
+}

@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: movimiento-patrocinador
+    runtime: node
+    plan: free
+    rootDir: relayer
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: MNEMONIC
+        sync: false
+      - key: CONTRATO
+        value: "0x8c6ACA8E53BaA96627DFF40552B5f328dCA8F230"
+      - key: RPC_URL
+        value: https://mainnet.base.org

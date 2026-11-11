@@ -10,7 +10,7 @@ No hay token, no hay venta y no hay dinero de por medio.
 | Contrato | `contracts/Movimiento.sol` | Registro de números (badge intransferible ERC-721 + ERC-5192) |
 | Pruebas | `test/Movimiento.test.js` | 11 pruebas: invitar, unirse, no transferir, recuperar, pausar, migrar, etc. |
 | Página | `web/` | Somos, Mi número, Invitar (QR), Mostrar mi badge (QR que cambia), Comprobación |
-| Patrocinador | `relayer.js` | Pequeño servidor que paga el gas de los que se unen |
+| Patrocinador | `relayer/` + `render.yaml` | Pequeño servidor que paga el gas de los que se unen (listo para Render) |
 | Despliegue | `scripts/deploy.js` | Publica el contrato y registra al fundador |
 | Respaldo | `scripts/exportar.js`, `scripts/migrar.js` | Copia del registro y contrato de reemplazo |
 
@@ -64,7 +64,7 @@ npx hardhat test
 3. Pon la dirección del contrato en `web/config.js`.
 4. Corre el patrocinador (en Render, Railway o cualquier servidor con Node):
    ```bash
-   PRIVATE_KEY=0x... CONTRATO=0x... RPC_URL=https://sepolia.base.org node relayer.js
+   cd relayer && npm install && MNEMONIC="12 palabras" node index.js
    ```
    y pon su URL en `web/config.js` → `patrocinador`.
 5. Publica la carpeta `web/` en cualquier hosting estático (GitHub Pages, Netlify, Cloudflare Pages). Tiene que ser https para que el QR abra bien en los teléfonos.

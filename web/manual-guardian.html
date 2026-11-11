@@ -6,19 +6,21 @@
 <title>Manual del guardián</title>
 <link rel="icon" href="icono.svg" type="image/svg+xml">
 <meta name="theme-color" content="#0d0d12">
+<link rel="stylesheet" href="estilo.css?v=12">
 <style>
-  :root { --fondo:#0d0d12; --tarjeta:#16161d; --borde:#2a2a33; --oro:#d9c58b; --texto:#f2ead3; --tenue:#9b9584; }
+  :root { --fondo:#07070d; --tarjeta:rgba(22,20,34,.7); --borde:rgba(217,185,106,.18); }
   * { box-sizing:border-box; }
-  body { margin:0; background:var(--fondo); color:var(--texto); font:16px/1.6 Georgia, "Times New Roman", serif; }
+  body { margin:0; background:var(--fondo); color:var(--texto); font:16px/1.65 var(--sans); background:radial-gradient(1000px 600px at 50% -10%, rgba(217,185,106,.12), transparent 60%), var(--noche); }
   main { max-width:620px; margin:0 auto; padding:24px 16px 64px; }
+  section { display:block; animation:none; }
   header { text-align:center; margin-bottom:24px; }
-  header h1 { font-weight:normal; letter-spacing:.12em; font-size:20px; margin:0; color:var(--oro); text-transform:uppercase; }
-  header p { margin:4px 0 0; color:var(--tenue); font-style:italic; }
+  header h1 { font:400 28px/1.2 var(--serif); letter-spacing:.18em; margin:0; color:var(--oro); text-transform:uppercase; }
+  header p { margin:8px 0 0; color:var(--tenue); font:italic 19px var(--serif); }
   nav.indice { background:var(--tarjeta); border:1px solid var(--borde); border-radius:16px; padding:16px 20px; margin-bottom:24px; }
   nav.indice ol { margin:0; padding-left:20px; } nav.indice a { color:var(--oro); text-decoration:none; }
   section { background:var(--tarjeta); border:1px solid var(--borde); border-radius:16px; padding:20px 22px; margin-bottom:16px; }
-  h2 { font-weight:normal; color:var(--oro); margin:0 0 10px; font-size:21px; }
-  h3 { font-weight:normal; color:var(--oro); margin:18px 0 6px; font-size:17px; }
+  h2 { font:400 28px/1.2 var(--serif); color:var(--oro-claro); margin:0 0 10px; }
+  h3 { font:600 20px/1.2 var(--serif); color:var(--oro-claro); margin:18px 0 6px; }
   p, li { margin:6px 0; } ol, ul { padding-left:22px; }
   .nota { border-left:3px solid var(--oro); padding:6px 12px; margin:12px 0; color:var(--texto); background:rgba(217,197,139,.06); border-radius:0 8px 8px 0; }
   .tenue { color:var(--tenue); font-size:14px; }
@@ -30,7 +32,7 @@
 </head>
 <body>
 <main>
-<header>
+<header><img src="sello.svg" alt="" width="96" height="96" style="display:block;margin:0 auto 10px">
   <h1>Manual del guardián</h1>
   <p>Para quien cuida el registro. Léelo completo antes de actuar.</p>
 </header>

@@ -1,1 +1,35 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" fill="#0d0d12"/><circle cx="256" cy="256" r="190" fill="none" stroke="#d9c58b" stroke-width="6"/><text x="256" y="300" font-family="Georgia,serif" font-size="150" fill="#f2ead3" text-anchor="middle">N</text></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="oro" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fbeec2"/><stop offset=".55" stop-color="#d9b96a"/><stop offset="1" stop-color="#8f6d2e"/>
+    </linearGradient>
+    <linearGradient id="aro" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fbeec2"/><stop offset=".5" stop-color="#b8924a"/><stop offset="1" stop-color="#fbeec2"/>
+    </linearGradient>
+    <radialGradient id="halo" cx=".5" cy=".42" r=".5">
+      <stop offset="0" stop-color="#f4dc9a" stop-opacity=".35"/><stop offset="1" stop-color="#f4dc9a" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="512" height="512" fill="#0a0a12"/>
+  <circle cx="256" cy="256" r="232" fill="none" stroke="url(#aro)" stroke-width="5"/>
+  <circle cx="256" cy="256" r="218" fill="none" stroke="url(#aro)" stroke-width="1.5" opacity=".6"/>
+  <g transform="translate(0,6)"><circle cx="256" cy="200" r="150" fill="url(#halo)"/>
+  <g id="alas">
+    <path d="M256,300 Q295.2,208.9 299.1,127.3 Q274.3,203.7 256,300Z" fill="url(#oro)" opacity="1.00"/>
+    <path d="M256,300 Q315.3,226.9 334.9,151.7 Q293.8,215.5 256,300Z" fill="url(#oro)" opacity="0.89"/>
+    <path d="M256,300 Q326.1,250.6 357.7,187.0 Q307.0,233.4 256,300Z" fill="url(#oro)" opacity="0.78"/>
+    <path d="M256,300 Q326.8,275.2 365.4,226.2 Q312.5,253.9 256,300Z" fill="url(#oro)" opacity="0.67"/>
+    <path d="M256,300 Q317.6,295.7 357.5,263.1 Q309.8,274.1 256,300Z" fill="url(#oro)" opacity="0.56"/>
+    <path d="M256,300 Q302.3,309.2 337.6,291.4 Q300.3,290.4 256,300Z" fill="url(#oro)" opacity="0.45"/>
+    <path d="M256,300 Q216.8,208.9 212.9,127.3 Q237.7,203.7 256,300Z" fill="url(#oro)" opacity="1.00"/>
+    <path d="M256,300 Q196.7,226.9 177.1,151.7 Q218.2,215.5 256,300Z" fill="url(#oro)" opacity="0.89"/>
+    <path d="M256,300 Q185.9,250.6 154.3,187.0 Q205.0,233.4 256,300Z" fill="url(#oro)" opacity="0.78"/>
+    <path d="M256,300 Q185.2,275.2 146.6,226.2 Q199.5,253.9 256,300Z" fill="url(#oro)" opacity="0.67"/>
+    <path d="M256,300 Q194.4,295.7 154.5,263.1 Q202.2,274.1 256,300Z" fill="url(#oro)" opacity="0.56"/>
+    <path d="M256,300 Q209.7,309.2 174.4,291.4 Q211.7,290.4 256,300Z" fill="url(#oro)" opacity="0.45"/>
+  </g>
+  <circle cx="256" cy="300" r="7" fill="#fff6d8"/>
+  <polygon points="256.0,66.0 261.9,90.1 286.0,96.0 261.9,101.9 256.0,126.0 250.1,101.9 226.0,96.0 250.1,90.1" fill="#fff6d8"/>
+  <path d="M176 352 H336" stroke="#c9a961" stroke-width="3" stroke-linecap="round"/>
+  <path d="M206 372 H306" stroke="#c9a961" stroke-width="2" stroke-linecap="round" opacity=".6"/></g>
+</svg>

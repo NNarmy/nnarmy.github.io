@@ -2,139 +2,128 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Movimiento sin nombre</title>
+<meta name="description" content="La revolución silenciosa. Aquí no hay nombres, hay números.">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icono.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icono-180.png">
-<meta name="theme-color" content="#0d0d12">
+<meta name="theme-color" content="#07070d">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Movimiento">
-<style>
-  :root { --fondo:#0d0d12; --tarjeta:#16161d; --borde:#2a2a33; --oro:#d9c58b; --texto:#f2ead3; --tenue:#9b9584; --error:#e08a7a; --ok:#9fd3a0; }
-  * { box-sizing:border-box; }
-  body { margin:0; background:var(--fondo); color:var(--texto); font:16px/1.5 Georgia, "Times New Roman", serif; }
-  main { max-width:520px; margin:0 auto; padding:24px 16px 64px; }
-  header { text-align:center; margin-bottom:24px; }
-  header h1 { font-weight:normal; letter-spacing:.12em; font-size:20px; margin:0; color:var(--oro); text-transform:uppercase; }
-  header p { margin:4px 0 0; color:var(--tenue); font-style:italic; }
-  nav { display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-bottom:24px; }
-  nav a { color:var(--tenue); text-decoration:none; padding:6px 12px; border:1px solid var(--borde); border-radius:999px; font-size:14px; }
-  nav a.activo { color:var(--fondo); background:var(--oro); border-color:var(--oro); }
-  section { display:none; background:var(--tarjeta); border:1px solid var(--borde); border-radius:16px; padding:24px; }
-  section.activa { display:block; }
-  h2 { font-weight:normal; color:var(--oro); margin:0 0 12px; font-size:22px; }
-  .grande { font-size:64px; text-align:center; color:var(--texto); margin:8px 0; }
-  .centro { text-align:center; }
-  .tenue { color:var(--tenue); font-size:14px; }
-  button { font:inherit; background:var(--oro); color:var(--fondo); border:0; border-radius:10px; padding:12px 18px; cursor:pointer; width:100%; margin-top:12px; }
-  button.secundario { background:transparent; color:var(--oro); border:1px solid var(--oro); }
-  button:disabled { opacity:.5; cursor:wait; }
-  .qr { background:#fff; padding:12px; border-radius:12px; width:fit-content; margin:16px auto; }
-  .qr img { display:block; width:240px; height:240px; image-rendering:pixelated; }
-  .badge img { display:block; width:200px; margin:12px auto; border-radius:50%; }
-  .numeros { display:flex; flex-wrap:wrap; gap:6px; margin-top:12px; }
-  .numeros span { border:1px solid var(--borde); border-radius:8px; padding:2px 8px; font-size:14px; }
-  .msg { margin-top:12px; font-size:15px; }
-  .msg.error { color:var(--error); } .msg.ok { color:var(--ok); }
-  .frase { background:var(--fondo); border:1px dashed var(--oro); border-radius:10px; padding:12px; word-spacing:6px; margin-top:8px; }
-  input { width:100%; background:var(--fondo); color:var(--texto); border:1px solid var(--borde); border-radius:10px; padding:10px; font:inherit; margin-top:6px; }
-  .bloque { border-top:1px solid var(--borde); margin-top:20px; padding-top:16px; }
-  .bloque h3 { font-weight:normal; color:var(--oro); margin:0 0 8px; font-size:17px; }
-  textarea { width:100%; background:var(--fondo); color:var(--texto); border:1px solid var(--borde); border-radius:10px; padding:10px; font:inherit; }
-  a.boton { display:block; text-align:center; background:var(--oro); color:var(--fondo); border-radius:10px; padding:12px 18px; margin-top:12px; text-decoration:none; }
-  a.boton.chico { display:inline-block; padding:4px 12px; margin:4px 0 0 6px; font-size:14px; }
-  .fila-inv { border-bottom:1px solid var(--borde); padding:8px 0; }
-  code { font-size:12px; word-break:break-all; color:var(--tenue); }
-</style>
+<link rel="preload" href="fuentes/cormorant-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fuentes/inter.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="estilo.css?v=12">
 </head>
-<body>
+<body data-vista="inicio">
+<canvas id="cielo" aria-hidden="true"></canvas>
+<div class="velo" aria-hidden="true"></div>
+
 <main>
-  <header>
-    <h1>Movimiento sin nombre</h1>
-    <p>La revolución silenciosa. Aquí no hay nombres, hay números.</p>
+  <header class="cabecera">
+    <a href="#inicio" class="sello" aria-label="Inicio"><img src="sello.svg" alt="Sello del movimiento"></a>
+    <h1>Movimiento <span>sin nombre</span></h1>
+    <p class="lema">La revolución silenciosa. Aquí no hay nombres, hay números.</p>
   </header>
-  <nav>
-    <a href="#inicio" data-v="inicio">Inicio</a>
-    <a href="#mio" data-v="mio">Mi número</a>
-    <a href="#invitar" data-v="invitar">Invitar</a>
-    <a href="#probar" data-v="probar">Mostrar mi badge</a>
-  </nav>
 
   <section id="v-inicio">
-    <p class="centro" style="font-size:19px;margin-top:0">Un movimiento de personas con bondad en el corazón que se reconocen por un número, no por un nombre.</p>
-
-    <div class="bloque">
-      <h3>Qué es</h3>
-      <p>Cada miembro tiene un número que es suyo para siempre. No hay nombres, ni fotos, ni correos, ni datos personales. Solo números, registrados en una cadena pública que nadie puede borrar ni alterar.</p>
+    <div class="contador tarjeta">
+      <p class="etiqueta">Somos</p>
+      <div class="grande" id="total">·</div>
+      <p class="tenue centro">miembros registrados para siempre en la cadena</p>
     </div>
 
-    <div class="bloque">
-      <h3>Cómo se entra</h3>
-      <p>Nadie se inscribe solo. Un miembro te invita en persona mostrándote un código. Al escanearlo recibes el siguiente número, y ese número no se puede vender, regalar ni transferir. Es tuyo.</p>
+    <p class="manifiesto">Un movimiento de personas con bondad en el corazón que se reconocen por un número, no por un nombre.</p>
+
+    <div class="rejilla">
+      <article class="tarjeta pilar">
+        <svg viewBox="0 0 24 24" class="ico"><path d="M12 3v18M3 12h18" /><circle cx="12" cy="12" r="9"/></svg>
+        <h3>Qué es</h3>
+        <p>Cada miembro tiene un número que es suyo para siempre. Sin nombres, fotos, correos ni datos personales. Solo números, en una cadena pública que nadie puede borrar ni alterar.</p>
+      </article>
+      <article class="tarjeta pilar">
+        <svg viewBox="0 0 24 24" class="ico"><path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h2v2h-2zM18 18h2v2h-2z"/></svg>
+        <h3>Cómo se entra</h3>
+        <p>Nadie se inscribe solo. Un miembro te invita en persona con un código. Al escanearlo recibes el siguiente número, que no se puede vender, regalar ni transferir. Es tuyo.</p>
+      </article>
+      <article class="tarjeta pilar">
+        <svg viewBox="0 0 24 24" class="ico"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></svg>
+        <h3>Cómo nos reconocemos</h3>
+        <p>Pide a quien dice ser miembro que te muestre su badge y escanéalo. La página te dice si de verdad es ese número. El código cambia cada 20 segundos: una foto no sirve.</p>
+      </article>
+      <article class="tarjeta pilar">
+        <svg viewBox="0 0 24 24" class="ico"><circle cx="12" cy="12" r="9"/><path d="M5.6 5.6l12.8 12.8"/></svg>
+        <h3>Lo que no es</h3>
+        <p>No es una criptomoneda ni una inversión. No se vende nada y no cuesta nada. No se guarda ningún dato tuyo. El registro y el código son abiertos: cualquiera puede revisarlos.</p>
+      </article>
     </div>
 
-    <div class="bloque">
-      <h3>Cómo nos reconocemos</h3>
-      <p>Si alguien dice ser miembro, pídele que te muestre su badge. Escaneas el código que aparece en su teléfono y la página te dice si de verdad es ese número. El código cambia cada 20 segundos, así que no sirve una foto.</p>
+    <div class="tarjeta">
+      <h2 class="centro">Los números</h2>
+      <div class="numeros" id="lista"></div>
     </div>
 
-    <div class="bloque">
-      <h3>Lo que no es</h3>
-      <p>No es una criptomoneda ni una inversión. No se vende nada y no cuesta nada. No se guarda ningún dato tuyo. El registro y el código de esta página son abiertos: cualquiera puede revisarlos.</p>
-    </div>
-
-    <p class="centro"><a href="manual.html" style="color:var(--oro)">Leer el manual del miembro →</a></p>
-
-    <div class="bloque">
-      <h2 class="centro">Cuántos somos</h2>
-    <div class="grande" id="total">…</div>
-    <p class="centro tenue">miembros registrados para siempre en la cadena</p>
-    <div class="numeros" id="lista"></div>
-    </div>
+    <a class="enlace-manual" href="manual.html">Leer el manual del miembro <span>→</span></a>
   </section>
 
-  <section id="v-mio">
+  <section id="v-mio" class="tarjeta">
     <h2>Mi número</h2>
     <div id="mio-contenido"></div>
   </section>
 
-  <section id="v-invitar">
+  <section id="v-invitar" class="tarjeta">
     <h2>Invitar a alguien</h2>
     <p class="tenue">Si conoces a alguien con bondad en el corazón, muéstrale este código. Al escanearlo recibe el siguiente número. Cada código sirve para una sola persona y vence en 7 días.</p>
     <div id="invitar-contenido"></div>
   </section>
 
-  <section id="v-unirse">
+  <section id="v-unirse" class="tarjeta">
     <h2>Has sido invitado</h2>
     <div id="unirse-contenido"></div>
   </section>
 
-  <section id="v-probar">
+  <section id="v-probar" class="tarjeta">
     <h2>Mostrar mi badge</h2>
-    <p class="tenue">Quien quiera comprobar que eres miembro escanea este código con la cámara de su teléfono. El código cambia cada 20 segundos, así que una foto vieja no sirve.</p>
+    <p class="tenue">Quien quiera comprobar que eres miembro escanea este código con la cámara de su teléfono. Cambia cada 20 segundos, así que una foto vieja no sirve.</p>
     <div id="probar-contenido"></div>
   </section>
 
-  <section id="v-comprobar">
+  <section id="v-comprobar" class="tarjeta">
     <h2>Comprobación</h2>
     <div id="comprobar-contenido"></div>
   </section>
-  <section id="v-reclamar">
+
+  <section id="v-reclamar" class="tarjeta">
     <h2>Tu número de siempre</h2>
     <div id="reclamar-contenido"></div>
   </section>
 
-  <section id="v-guardian">
+  <section id="v-guardian" class="tarjeta">
     <h2>Panel del guardián</h2>
     <div id="guardian-contenido"></div>
   </section>
-</main>
-<footer style="text-align:center;padding:0 16px 32px;font-size:13px"><a href="manual.html" style="color:var(--tenue)">Manual del miembro</a> · <a href="manual-guardian.html" style="color:var(--tenue)">Manual del guardián</a></footer>
 
-<script src="config.js?v=11"></script>
+  <footer class="pie">
+    <a href="manual.html">Manual del miembro</a><span>·</span><a href="manual-guardian.html">Manual del guardián</a>
+  </footer>
+</main>
+
+<nav class="pestanas" aria-label="Secciones">
+  <a href="#inicio" data-v="inicio">
+    <svg viewBox="0 0 24 24"><path d="M12 2.5l2.4 6.6 6.6 2.4-6.6 2.4L12 20.5l-2.4-6.6L3 11.5l6.6-2.4z"/></svg><span>Inicio</span></a>
+  <a href="#mio" data-v="mio">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M10 8l-1 8M15 8l-1 8M7.5 10.5h9M7 13.5h9"/></svg><span>Mi número</span></a>
+  <a href="#invitar" data-v="invitar">
+    <svg viewBox="0 0 24 24"><circle cx="10" cy="8" r="3.5"/><path d="M3.5 20c.8-3.6 3.4-5.5 6.5-5.5s5.7 1.9 6.5 5.5M19 8v6M16 11h6"/></svg><span>Invitar</span></a>
+  <a href="#probar" data-v="probar">
+    <svg viewBox="0 0 24 24"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></svg><span>Mi badge</span></a>
+</nav>
+
+<script src="config.js?v=12"></script>
 <script src="lib/ethers.umd.min.js"></script>
 <script src="lib/qrcode.js"></script>
-<script src="app.js?v=11"></script>
+<script src="fondo.js?v=12"></script>
+<script src="app.js?v=12"></script>
 </body>
 </html>

@@ -51,6 +51,12 @@ function qr(texto) {
   const q = qrcode(0, "M"); q.addData(texto); q.make();
   return `<div class="qr">${q.createImgTag(6, 0)}</div>`;
 }
+function contar(el, n) {
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches || n < 2) { el.textContent = n; return; }
+  const t0 = performance.now(), dur = 1400;
+  const paso = (t) => { const k = Math.min(1, (t - t0) / dur); el.textContent = Math.round(n * (1 - (1 - k) ** 3)); if (k < 1) requestAnimationFrame(paso); };
+  requestAnimationFrame(paso);
+}
 function msg(el, texto, tipo = "") { el.insertAdjacentHTML("beforeend", `<p class="msg ${tipo}">${esc(texto)}</p>`); }
 
 // ---------- Llave (billetera anonima guardada solo en este telefono) ----------
@@ -92,10 +98,12 @@ function safe(method, params = undefined, espera = 60000) {
 const vistas = {
   async inicio() {
     const total = Number(await contrato.totalMiembros());
-    $("total").textContent = total;
+    contar($("total"), total);
     const lista = [];
     for (let i = 0; i < total; i += 500) lista.push(...await contrato.numeros(i, 500));
-    $("lista").innerHTML = lista.map(Number).sort((a, b) => a - b).map((n) => `<span>#${n}</span>`).join("");
+    const orden = lista.map(Number).sort((a, b) => a - b);
+    $("lista").innerHTML = orden.map((n, i) => `<span style="animation-delay:${Math.min(i, 40) * 30}ms">#${n}</span>`).join("");
+    window.fondo?.miembros(orden);
   },
 
   async mio() {
@@ -395,6 +403,7 @@ async function ruta() {
   const h = location.hash.slice(1) || (enSafe ? "guardian" : "inicio");
   const [v, dato] = h.split("=");
   const vista = vistas[v] ? v : "inicio";
+  document.body.dataset.vista = vista; scrollTo({ top: 0 });
   document.querySelectorAll("section").forEach((s) => s.classList.toggle("activa", s.id === `v-${vista}`));
   document.querySelectorAll("nav a").forEach((a) => a.classList.toggle("activo", a.dataset.v === vista));
   try { await vistas[vista](dato); } catch (e) { console.error(e); msg($(`v-${vista}`), "No se pudo conectar con la cadena. Intenta más tarde.", "error"); }

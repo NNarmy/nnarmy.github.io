@@ -2,7 +2,7 @@ name: Desplegar contrato
 on:
   workflow_dispatch:
     inputs:
-      accion: { description: "desplegar, fundador o comunidad", default: "desplegar", required: true }
+      accion: { description: "desplegar, fundador, comunidad o bondad", default: "desplegar", required: true }
       red: { description: "base (real) o baseSepolia (pruebas)", default: "base", required: true }
       contrato: { description: "Solo para 'fundador': dirección del contrato ya publicado", required: false }
       fundador: { description: "Dirección del #1313 (se ve en Mi número)", required: false }
@@ -17,7 +17,7 @@ jobs:
       - run: npm ci --legacy-peer-deps
       - run: npx hardhat test
       - name: Ejecutar
-        run: npx hardhat run scripts/${{ inputs.accion == 'fundador' && 'fundador' || inputs.accion == 'comunidad' && 'comunidad' || 'deploy' }}.js --network ${{ inputs.red }}
+        run: npx hardhat run scripts/${{ inputs.accion == 'fundador' && 'fundador' || inputs.accion == 'comunidad' && 'comunidad' || inputs.accion == 'bondad' && 'bondad' || 'deploy' }}.js --network ${{ inputs.red }}
         env:
           PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
           MNEMONIC: ${{ secrets.MNEMONIC }}

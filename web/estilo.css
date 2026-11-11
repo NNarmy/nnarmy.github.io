@@ -155,3 +155,8 @@ label { display:block; margin-top:12px; }
   border:1px solid var(--linea); overflow:hidden; }
 .resultado .barra { position:absolute; inset:0 auto 0 0; background:linear-gradient(90deg, rgba(217,185,106,.28), rgba(217,185,106,.08)); transition:width .8s; }
 .resultado span, .resultado b { position:relative; }
+
+.derecha { text-align:right; margin-top:2px; }
+.carta { margin:0 0 18px; padding:18px 20px; border-radius:16px; background:rgba(217,185,106,.07); border-left:3px solid var(--oro);
+  font:italic 400 21px/1.45 var(--serif); color:var(--texto); }
+.carta cite { display:block; margin-top:10px; font:500 13px var(--sans); color:var(--oro); font-style:normal; letter-spacing:.08em; }

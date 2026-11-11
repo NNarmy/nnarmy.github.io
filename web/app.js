@@ -53,7 +53,9 @@ const DOMINIO = { name: "Movimiento", version: "1", chainId: C.chainId, verifyin
 const TIPOS = { Invitacion: [
   { name: "invitador", type: "uint256" }, { name: "nonce", type: "uint256" }, { name: "vence", type: "uint256" }] };
 const VALIDEZ_PRUEBA = 90; // segundos
-const LOTE = 150; // miembros antiguos por transaccion
+const LOTE = 150;
+const MAX_MENSAJE = 160; // caracteres del mensaje de invitacion (debe caber en el codigo QR)
+const textoMensaje = (n, nonce, m) => `Mensaje de invitacion #${n} ${nonce}: ${m}`; // miembros antiguos por transaccion
 
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -192,17 +194,27 @@ const vistas = {
     const el = $("invitar-contenido"); el.innerHTML = "";
     const [w, n] = await miNumero();
     if (!n) { el.innerHTML = `<p>Solo un miembro con número puede invitar. Abre esta página desde el teléfono donde tienes tu badge.</p>`; return; }
-    const crear = async () => {
+    const formulario = () => {
+      el.innerHTML = `<label class="tenue" for="inv-msj">Unas palabras para quien invitas (opcional)</label>
+        <textarea id="inv-msj" rows="3" maxlength="${MAX_MENSAJE}" placeholder="Por ejemplo: Te vi ayudar sin que nadie mirara. Bienvenido."></textarea>
+        <p class="tenue derecha"><span id="inv-cuenta">0</span>/${MAX_MENSAJE}</p>
+        <button id="inv-crear">Crear invitación</button>`;
+      $("inv-msj").oninput = () => ($("inv-cuenta").textContent = $("inv-msj").value.length);
+      $("inv-crear").onclick = () => crear($("inv-msj").value.trim().slice(0, MAX_MENSAJE));
+    };
+    const crear = async (mensaje) => {
       const inv = { invitador: n, nonce: ethers.toBigInt(ethers.randomBytes(16)).toString(), vence: Math.floor(Date.now() / 1000) + 7 * 86400 };
       const firma = await w.signTypedData(DOMINIO, TIPOS, inv);
-      const enlace = `${base()}#unirse=${b64u.enc({ ...inv, firma })}`;
+      const datos = { ...inv, firma };
+      if (mensaje) { datos.m = mensaje; datos.fm = await w.signMessage(textoMensaje(n, inv.nonce, mensaje)); }
+      const enlace = `${base()}#unirse=${b64u.enc(datos)}`;
       window.__ultimoEnlace = enlace;
-      el.innerHTML = qr(enlace) + `<p class="centro tenue">Invitación de #${n}</p>
+      el.innerHTML = qr(enlace) + `<p class="centro tenue">Invitación de #${n}${mensaje ? " · con tu mensaje" : ""}</p>
         <button class="secundario" id="copiar">Copiar enlace</button><button id="otra">Crear otra invitación</button>`;
       $("copiar").onclick = () => navigator.clipboard?.writeText(enlace).then(() => msg(el, "Enlace copiado.", "ok"));
-      $("otra").onclick = crear;
+      $("otra").onclick = formulario;
     };
-    await crear();
+    formulario();
   },
 
   async unirse(dato) {
@@ -212,7 +224,14 @@ const vistas = {
     if (inv.vence * 1000 < Date.now()) { el.innerHTML = `<p class="msg error">Esta invitación ya venció. Pide una nueva.</p>`; return; }
     const [w0, n0] = await miNumero();
     if (n0) { el.innerHTML = `<p>Este teléfono ya es el <b>#${n0}</b>. Cada persona tiene un solo número.</p>`; return; }
-    el.innerHTML = `<p>El miembro <b>#${esc(inv.invitador)}</b> te considera merecedor de un número.</p>
+    let carta = "";
+    if (inv.m && inv.fm) {
+      try {
+        const autor = ethers.verifyMessage(textoMensaje(inv.invitador, inv.nonce, inv.m), inv.fm);
+        if (autor === (await contrato.ownerOf(inv.invitador))) carta = `<blockquote class="carta">${esc(inv.m).replace(/\n/g, "<br>")}<cite>— #${esc(inv.invitador)}</cite></blockquote>`;
+      } catch {}
+    }
+    el.innerHTML = carta + `<p>El miembro <b>#${esc(inv.invitador)}</b> te considera merecedor de un número.</p>
       <p class="tenue">Al aceptar se crea una llave anónima en este teléfono y recibes el siguiente número. No se pide nombre, correo ni ningún dato tuyo. No cuesta nada.</p>
       <button id="aceptar">Aceptar mi número</button>`;
     $("aceptar").onclick = async (e) => {

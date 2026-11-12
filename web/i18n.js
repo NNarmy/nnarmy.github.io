@@ -5,6 +5,7 @@
     // Cabecera, inicio y pestañas
     ["Movimiento sin nombre", "Nameless Movement", "Movimento sem nome"],
     ["Movimiento", "Movement", "Movimento"],
+    ["Que todo el que se acerque a ti…", "May everyone who comes near you…", "Que todo aquele que se aproximar de você…"],
     ["sin nombre", "without a name", "sem nome"],
     ["La revolución silenciosa. Aquí no hay nombres, hay números.", "The silent revolution. Here there are no names, only numbers.", "A revolução silenciosa. Aqui não há nomes, há números."],
     ["Todavía no confirmas tus 12 palabras de respaldo.", "You haven't confirmed your 12 backup words yet.", "Você ainda não confirmou suas 12 palavras de backup."],

@@ -181,3 +181,8 @@ a.boton.secundario-a::after { display:none; }
 .idiomas button[aria-pressed="true"] { color:#1a1408; background:var(--oro-grad); }
 .idiomas button:focus-visible { outline:2px solid var(--oro); outline-offset:1px; }
 .pestanas span { white-space:nowrap; max-width:100%; overflow:hidden; text-overflow:ellipsis; font-size:min(11px, 2.8vw); }
+
+/* Título QTAM */
+.cabecera h1 .sigla { display:block; font-size:1em; margin-top:0; letter-spacing:.32em; padding-left:.32em; }
+.cabecera h1 .frase-h1 { font:italic 400 .7em/1.3 var(--serif); letter-spacing:.04em; text-transform:none; margin-top:8px; }
+body:not([data-vista="inicio"]) .cabecera h1 .frase-h1 { font-size:.75em; }

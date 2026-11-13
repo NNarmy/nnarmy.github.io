@@ -24,6 +24,8 @@
     ["Los números", "The numbers", "Os números"],
     ["Leer el manual del miembro", "Read the member manual (in Spanish)", "Ler o manual do membro (em espanhol)"],
     ["Manual del miembro", "Member manual (ES)", "Manual do membro (ES)"],
+    ["Guía paso a paso, con fotos", "Step-by-step guide with pictures (in Spanish)", "Guia passo a passo, com fotos (em espanhol)"],
+    ["Guía con fotos", "Picture guide (ES)", "Guia com fotos (ES)"],
     ["Manual del guardián", "Guardian manual (ES)", "Manual do guardião (ES)"],
     ["Inicio", "Home", "Início"],
     ["Mi número", "My number", "Meu número"],

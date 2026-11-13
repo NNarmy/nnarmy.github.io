@@ -1,0 +1,659 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Guía paso a paso · QTAM</title>
+<meta name="description" content="Cómo instalar la app, invitar a una persona y cuidar su número. Con fotos.">
+<link rel="icon" href="icono.svg" type="image/svg+xml">
+<meta name="theme-color" content="#07070d">
+<style>
+@font-face { font-family:"Cormorant"; src:url(fuentes/cormorant-400-normal.woff2) format("woff2"); font-weight:400; font-display:swap; }
+@font-face { font-family:"Cormorant"; src:url(fuentes/cormorant-400-italic.woff2) format("woff2"); font-weight:400; font-style:italic; font-display:swap; }
+@font-face { font-family:"Cormorant"; src:url(fuentes/cormorant-600-normal.woff2) format("woff2"); font-weight:600; font-display:swap; }
+@font-face { font-family:"Inter"; src:url(fuentes/inter.woff2) format("woff2"); font-weight:100 900; font-display:swap; }
+:root {
+  --noche:#07070d; --vidrio:rgba(24,21,36,.72); --linea:rgba(217,185,106,.2); --linea-fuerte:rgba(217,185,106,.5);
+  --oro:#d9b96a; --oro-claro:#fbeec2; --oro-grad:linear-gradient(135deg,#fbeec2 0%,#d9b96a 45%,#a8833d 100%);
+  --texto:#f6f0e2; --tenue:#b5ad99; --rojo:#f0a08f; --verde:#a8e0b0;
+  --serif:"Cormorant", Georgia, serif; --sans:"Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --tw:280px; --ios-azul:#0a84ff;
+}
+* { box-sizing:border-box; }
+html { background:var(--noche); }
+body { margin:0; color:var(--texto); font:20px/1.6 var(--sans); background:
+  radial-gradient(1100px 700px at 50% -8%, rgba(217,185,106,.16), transparent 60%),
+  radial-gradient(900px 600px at 100% 40%, rgba(88,64,160,.14), transparent 60%),
+  radial-gradient(700px 500px at 0% 75%, rgba(40,70,140,.12), transparent 60%), var(--noche); }
+body::before { content:""; position:fixed; inset:0; pointer-events:none; opacity:.55;
+  background-image:radial-gradient(1.2px 1.2px at 12% 18%, #fff8, transparent), radial-gradient(1px 1px at 78% 9%, #fff7, transparent),
+  radial-gradient(1.4px 1.4px at 63% 33%, #fbeec2aa, transparent), radial-gradient(1px 1px at 28% 47%, #fff6, transparent),
+  radial-gradient(1.3px 1.3px at 88% 61%, #fbeec299, transparent), radial-gradient(1px 1px at 8% 72%, #fff7, transparent),
+  radial-gradient(1.2px 1.2px at 46% 86%, #fff6, transparent), radial-gradient(1px 1px at 93% 92%, #fbeec288, transparent); }
+main { position:relative; max-width:640px; margin:0 auto; padding:28px 16px 80px; }
+a { color:var(--oro); }
+b, strong { color:var(--oro-claro); font-weight:600; }
+.boton-txt { display:inline-block; padding:0 .35em; border-radius:8px; background:rgba(217,185,106,.16); border:1px solid var(--linea-fuerte); color:var(--oro-claro); font-weight:600; white-space:nowrap; }
+
+/* Portada */
+.portada { text-align:center; padding:12px 0 8px; }
+.portada img { width:132px; height:132px; display:block; margin:0 auto 10px; filter:drop-shadow(0 0 30px rgba(217,185,106,.35)); }
+.sigla { font:400 22px/1 var(--serif); letter-spacing:.5em; color:var(--oro); margin:0 0 6px; padding-left:.5em; }
+.frase { font:italic 400 22px/1.3 var(--serif); color:var(--tenue); margin:0 0 26px; }
+.portada h1 { font:400 52px/1.05 var(--serif); margin:0; background:var(--oro-grad); -webkit-background-clip:text; background-clip:text; color:transparent; }
+.portada .sub { font-size:21px; color:var(--texto); margin:14px auto 0; max-width:30em; }
+.adorno { display:flex; align-items:center; gap:14px; justify-content:center; color:var(--oro); margin:26px 0; }
+.adorno::before, .adorno::after { content:""; height:1px; width:90px; background:linear-gradient(90deg, transparent, var(--oro)); }
+.adorno::after { transform:scaleX(-1); }
+
+.tarjeta { background:var(--vidrio); border:1px solid var(--linea); border-radius:24px; padding:22px 22px; margin:18px 0; backdrop-filter:blur(6px); }
+.tarjeta h2 { font:400 30px/1.15 var(--serif); color:var(--oro-claro); margin:0 0 10px; }
+.tarjeta p { margin:8px 0; }
+.leyenda { display:flex; align-items:center; gap:14px; }
+.leyenda .mini-toca { flex:none; width:56px; height:56px; border-radius:16px; border:3px solid #ffd76a; box-shadow:0 0 18px rgba(255,215,106,.7); position:relative; }
+.leyenda .mini-toca::before { content:""; position:absolute; left:50%; top:50%; width:24px; height:24px; margin:-12px 0 0 -12px; border-radius:50%; background:rgba(255,255,255,.9); box-shadow:0 0 0 5px rgba(255,215,106,.45); }
+
+/* Índice */
+.indice { list-style:none; padding:0; margin:0; display:grid; gap:10px; counter-reset:cap; }
+.indice a { display:flex; align-items:center; gap:16px; text-decoration:none; color:var(--texto); background:rgba(255,255,255,.03); border:1px solid var(--linea); border-radius:18px; padding:14px 16px; font-size:21px; line-height:1.25; }
+.indice a:hover { border-color:var(--linea-fuerte); }
+.indice .n { flex:none; width:44px; height:44px; border-radius:50%; display:grid; place-items:center; background:var(--oro-grad); color:#1b1408; font:600 24px/1 var(--serif); }
+.indice small { display:block; color:var(--tenue); font-size:16px; }
+
+/* Capítulos */
+.capitulo { margin-top:56px; }
+.cap-cabeza { text-align:center; margin-bottom:12px; }
+.cap-num { display:inline-grid; place-items:center; width:64px; height:64px; border-radius:50%; border:1px solid var(--linea-fuerte); font:400 34px/1 var(--serif); color:var(--oro); box-shadow:0 0 30px rgba(217,185,106,.2) inset; }
+.cap-cabeza h2 { font:400 42px/1.1 var(--serif); margin:12px 0 6px; background:var(--oro-grad); -webkit-background-clip:text; background-clip:text; color:transparent; }
+.cap-cabeza p { color:var(--tenue); margin:0 auto; max-width:28em; font-size:19px; }
+.quien { display:inline-block; margin-top:10px; padding:4px 14px; border-radius:99px; border:1px solid var(--linea); font-size:16px; color:var(--oro-claro); }
+
+.paso { background:var(--vidrio); border:1px solid var(--linea); border-radius:26px; padding:22px 20px 18px; margin:22px 0; break-inside:avoid; }
+.paso-cab { display:flex; gap:14px; align-items:flex-start; }
+.paso-n { flex:none; width:48px; height:48px; border-radius:50%; display:grid; place-items:center; background:var(--oro-grad); color:#1b1408; font:600 27px/1 var(--serif); box-shadow:0 0 22px rgba(217,185,106,.35); }
+.paso h3 { font:600 26px/1.2 var(--serif); color:var(--oro-claro); margin:8px 0 0; }
+.paso p { margin:12px 0 0; }
+.paso .tenue { color:var(--tenue); font-size:17px; }
+.donde { display:block; width:max-content; margin:18px auto -6px; padding:3px 14px; border-radius:99px; background:#000; border:1px solid var(--linea-fuerte); color:var(--oro-claro); font-size:15px; letter-spacing:.04em; }
+.nota { border-left:4px solid var(--oro); background:rgba(217,185,106,.08); border-radius:0 14px 14px 0; padding:12px 16px; margin:16px 0 0; font-size:18px; }
+.nota.alerta { border-color:#f0b35a; background:rgba(240,179,90,.12); }
+.par { display:flex; gap:14px; justify-content:center; flex-wrap:wrap; }
+.par .tel { --tw:200px; margin:18px 0 6px; }
+
+/* Teléfono */
+.tel { position:relative; width:min(var(--tw), 76vw); aspect-ratio:390/720; margin:20px auto 6px; border-radius:46px; padding:9px;
+  background:linear-gradient(145deg,#4a412f,#16130e 38%,#0c0b09 62%,#3a3324); box-shadow:0 0 0 1px rgba(217,185,106,.4), 0 30px 60px -18px rgba(0,0,0,.9), 0 0 70px -12px rgba(217,185,106,.28); }
+.tel.android { border-radius:34px; aspect-ratio:412/915; }
+.pantalla { position:relative; width:100%; height:100%; border-radius:38px; overflow:hidden; background:#000; container-type:inline-size; font-family:-apple-system, "SF Pro Text", "Inter", system-ui, sans-serif; line-height:1.25; }
+.android .pantalla { border-radius:26px; font-family:"Roboto", "Inter", system-ui, sans-serif; }
+.pantalla > img.captura { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:top; display:block; }
+.isla { position:absolute; z-index:5; left:50%; top:2.2%; width:30%; height:3.6%; transform:translateX(-50%); border-radius:99px; background:#000; }
+.android .isla { width:4.5%; height:2.1%; top:1.6%; }
+.toca { position:absolute; z-index:6; left:var(--x); top:var(--y); width:var(--w); height:var(--h); border:3px solid #ffd76a; border-radius:14px;
+  box-shadow:0 0 0 4px rgba(255,215,106,.22), 0 0 26px rgba(255,215,106,.85); animation:latido 1.6s ease-in-out infinite; }
+.toca::before { content:""; position:absolute; right:-4cqw; bottom:-4cqw; width:8.5cqw; height:8.5cqw; border-radius:50%; background:rgba(255,255,255,.92); box-shadow:0 0 0 1.8cqw rgba(255,215,106,.5), 0 2px 8px #0008; }
+.toca.redondo { border-radius:50%; }
+.toca.sin-punto::before { display:none; }
+@keyframes latido { 50% { box-shadow:0 0 0 9px rgba(255,215,106,.08), 0 0 34px rgba(255,215,106,1); } }
+
+/* Capturas reales: la captura va debajo de la barra de estado */
+.real { background:#07070d; }
+.real > img.captura { top:7.8%; height:92.2%; object-fit:fill; }
+.real .toca { top:calc(7.8% + var(--y) * .922); height:calc(var(--h) * .922); }
+.real::before { content:"9:41"; position:absolute; z-index:4; left:11%; top:2.6%; color:#fff; font-weight:600; font-size:4.1cqw; }
+.real::after { content:""; position:absolute; z-index:4; right:9%; top:3.1%; width:6.5cqw; height:3.2cqw; border:1.5px solid #fffc; border-radius:1cqw; background:linear-gradient(90deg,#fff 70%,transparent 70%) content-box; padding:1.5px; }
+
+/* --- Pantallas de sistema dibujadas --- */
+.ico { width:1em; height:1em; fill:none; stroke:currentColor; stroke-width:1.9; stroke-linecap:round; stroke-linejoin:round; vertical-align:middle; }
+.estado { position:absolute; z-index:4; top:0; left:0; right:0; height:8.5%; display:flex; justify-content:space-between; align-items:center; padding:0 8% 0 11%; color:#fff; font-weight:600; font-size:4.1cqw; }
+.estado .der { display:flex; gap:1.6cqw; align-items:center; }
+.bat { width:6.5cqw; height:3.2cqw; border:1.5px solid #fffc; border-radius:1cqw; position:relative; } .bat::after { content:""; position:absolute; inset:1.5px; right:25%; background:#fff; border-radius:.5cqw; }
+.velo-gris::after { content:""; position:absolute; inset:0; background:rgba(0,0,0,.45); z-index:2; }
+
+/* Safari */
+.safari-abajo { position:absolute; z-index:3; left:0; right:0; bottom:0; padding:2.6cqw 3cqw 6cqw; background:rgba(28,28,30,.94); backdrop-filter:blur(10px); border-top:1px solid #ffffff1a; }
+.safari-url { display:flex; align-items:center; justify-content:space-between; background:#3a3a3c; border-radius:3.2cqw; padding:2.6cqw 3.6cqw; color:#fff; font-size:4.3cqw; }
+.safari-url span:nth-child(2) { flex:1; text-align:center; }
+.safari-iconos { display:flex; justify-content:space-around; align-items:center; color:var(--ios-azul); font-size:7cqw; padding-top:3cqw; position:relative; }
+.safari-iconos .apag { color:#5a5a5e; }
+.hoja { position:absolute; z-index:3; left:0; right:0; bottom:0; top:20%; background:#1c1c1e; border-radius:5cqw 5cqw 0 0; padding:4cqw 4cqw 0; color:#fff; font-size:4.1cqw; }
+.hoja-cab { display:flex; align-items:center; gap:3cqw; padding-bottom:3.5cqw; border-bottom:1px solid #ffffff1a; }
+.hoja-cab img { width:11cqw; height:11cqw; border-radius:2.6cqw; }
+.hoja-cab div { flex:1; } .hoja-cab small { display:block; color:#8e8e93; font-size:3.4cqw; }
+.hoja-cab .x { width:7cqw; height:7cqw; border-radius:50%; background:#3a3a3c; display:grid; place-items:center; color:#aaa; font-size:3.6cqw; flex:none; }
+.apps { display:flex; gap:3.5cqw; padding:4cqw 0; overflow:hidden; }
+.apps span { flex:none; width:15.5cqw; text-align:center; font-size:2.9cqw; color:#ddd; }
+.apps i { display:block; width:14cqw; height:14cqw; border-radius:50%; margin:0 auto 1.4cqw; }
+.grupo { background:#2c2c2e; border-radius:3cqw; margin-bottom:3cqw; position:relative; }
+.grupo div { display:flex; justify-content:space-between; align-items:center; padding:3.1cqw 4cqw; border-bottom:1px solid #ffffff14; }
+.grupo div:last-child { border:0; }
+.grupo .ico { font-size:5.2cqw; color:#fff; }
+.flecha-abajo { text-align:center; color:#ffd76a; font-size:3.6cqw; font-weight:600; margin:1cqw 0 2cqw; }
+.dialogo-ios { position:absolute; inset:0; z-index:3; background:#000; color:#fff; padding-top:14%; font-size:4.2cqw; }
+.dialogo-ios .barra { display:flex; justify-content:space-between; align-items:center; padding:3cqw 4.5cqw; position:relative; }
+.dialogo-ios .barra b { color:#fff; } .dialogo-ios .azul { color:var(--ios-azul); }
+.dialogo-ios .barra .azul.fuerte { font-weight:700; }
+.dialogo-ios .caja { margin:4cqw; background:#1c1c1e; border-radius:3cqw; padding:4cqw; display:flex; gap:4cqw; align-items:center; }
+.dialogo-ios .caja img { width:17cqw; height:17cqw; border-radius:4cqw; }
+.dialogo-ios .caja .campo { flex:1; border-bottom:1px solid #ffffff2a; padding-bottom:2cqw; font-size:4.6cqw; }
+.dialogo-ios .caja small { display:block; color:#8e8e93; margin-top:2cqw; font-size:3.3cqw; }
+.dialogo-ios .fila { margin:0 4cqw; background:#1c1c1e; border-radius:3cqw; padding:3.2cqw 4cqw; display:flex; justify-content:space-between; align-items:center; }
+.interruptor { width:13cqw; height:7.6cqw; border-radius:99px; background:#30d158; position:relative; } .interruptor::after { content:""; position:absolute; right:.7cqw; top:.7cqw; width:6.2cqw; height:6.2cqw; border-radius:50%; background:#fff; }
+.dialogo-ios .expl { color:#8e8e93; font-size:3.3cqw; margin:2.5cqw 6cqw; }
+
+/* Pantalla de inicio del teléfono */
+.inicio-tel { position:absolute; inset:0; background:radial-gradient(120% 60% at 30% 10%, #3b4b9a, transparent 60%), radial-gradient(90% 60% at 90% 90%, #7a3f8a, transparent 60%), linear-gradient(#1c2350,#2a1640); }
+.android .inicio-tel { background:radial-gradient(100% 60% at 70% 20%, #2f6a5a, transparent 60%), radial-gradient(90% 60% at 10% 90%, #3a4f8a, transparent 60%), linear-gradient(#11241f,#151a33); }
+.rejilla-apps { position:absolute; left:6%; right:6%; top:13%; display:grid; grid-template-columns:repeat(4,1fr); gap:5.5cqw 3cqw; }
+.rejilla-apps span { text-align:center; color:#fff; font-size:2.9cqw; position:relative; }
+.rejilla-apps i { display:block; width:15cqw; height:15cqw; margin:0 auto 1.2cqw; border-radius:3.6cqw; position:relative; }
+.android .rejilla-apps i { border-radius:50%; }
+.rejilla-apps i::after { content:""; position:absolute; inset:28%; border-radius:30%; border:1.6cqw solid rgba(255,255,255,.85); }
+.rejilla-apps .nuestra i { background:#07070d url(icono-180.png) center/cover; } .rejilla-apps .nuestra i::after { display:none; }
+.rejilla-apps .nuestra { font-weight:600; }
+.muelle { position:absolute; left:4%; right:4%; bottom:3%; height:14%; border-radius:7cqw; background:rgba(255,255,255,.18); display:flex; justify-content:space-around; align-items:center; }
+.muelle i { width:15cqw; height:15cqw; border-radius:3.6cqw; }
+.android .muelle { background:none; } .android .muelle i { border-radius:50%; }
+.c1{background:#e2574c} .c2{background:#4cd964} .c3{background:#5ac8fa} .c4{background:#ffcc00} .c5{background:#8e8e93} .c6{background:#ff9500} .c7{background:#af52de} .c8{background:#007aff} .c9{background:#ff2d55} .c10{background:#34c3a0}
+
+/* Chrome Android */
+.chrome-arriba { position:absolute; z-index:3; top:0; left:0; right:0; padding:9% 2.5cqw 2.5cqw; background:#202124; display:flex; align-items:center; gap:2.6cqw; color:#e8eaed; font-size:4.2cqw; }
+.chrome-url { flex:1; background:#303134; border-radius:99px; padding:2.6cqw 4cqw; display:flex; gap:2cqw; align-items:center; }
+.chrome-pest { width:6cqw; height:6cqw; border:2px solid #e8eaed; border-radius:1.4cqw; display:grid; place-items:center; font-size:3.2cqw; font-weight:700; }
+.chrome-puntos { font-size:6.5cqw; font-weight:900; width:7cqw; text-align:center; line-height:1; position:relative; }
+.chrome-pagina { position:absolute; left:0; right:0; bottom:0; top:15.5%; overflow:hidden; } .chrome-pagina img { width:100%; display:block; margin-top:-5%; }
+.menu-android { position:absolute; z-index:4; top:9%; right:2.5%; width:68%; background:#303134; color:#e8eaed; border-radius:3cqw; box-shadow:0 8px 30px #000a; font-size:4cqw; padding:1.5cqw 0; }
+.menu-android .iconos { display:flex; justify-content:space-around; padding:2.5cqw 2cqw 3cqw; border-bottom:1px solid #ffffff1a; font-size:5.4cqw; }
+.menu-android div.it { padding:2.6cqw 5cqw; position:relative; }
+.dialogo-android { position:absolute; z-index:4; left:7%; right:7%; top:33%; background:#2d2f31; color:#e8eaed; border-radius:6cqw; padding:6cqw 5.5cqw 4cqw; font-size:4cqw; box-shadow:0 10px 40px #000c; }
+.dialogo-android h4 { margin:0 0 4cqw; font:400 6cqw/1.2 "Roboto","Inter",sans-serif; color:#fff; }
+.dialogo-android .app { display:flex; gap:3.5cqw; align-items:center; }
+.dialogo-android .app img { width:12cqw; height:12cqw; border-radius:50%; }
+.dialogo-android small { display:block; color:#9aa0a6; font-size:3.4cqw; }
+.dialogo-android .botones { display:flex; justify-content:flex-end; gap:6cqw; margin-top:7cqw; color:#8ab4f8; font-weight:600; position:relative; }
+.dialogo-android .botones span { padding:2cqw 2.5cqw; position:relative; }
+
+/* Cámara */
+.camara { position:absolute; inset:0; background:radial-gradient(80% 50% at 50% 45%, #3a3428, #0c0b09 75%); }
+.camara .otro { position:absolute; left:16%; top:16%; width:68%; aspect-ratio:390/844; border-radius:7cqw; overflow:hidden; border:2.2cqw solid #111; transform:rotate(-4deg); box-shadow:0 10px 40px #000; }
+.camara .otro img { width:100%; height:100%; object-fit:cover; object-position:top; }
+.camara .marco { position:absolute; left:20%; top:47%; width:60%; height:30%; }
+.camara .marco i { position:absolute; width:12cqw; height:12cqw; border:1.2cqw solid #ffd60a; }
+.camara .marco i:nth-child(1){left:0;top:0;border-right:0;border-bottom:0;border-radius:3cqw 0 0 0} .camara .marco i:nth-child(2){right:0;top:0;border-left:0;border-bottom:0;border-radius:0 3cqw 0 0}
+.camara .marco i:nth-child(3){left:0;bottom:0;border-right:0;border-top:0;border-radius:0 0 0 3cqw} .camara .marco i:nth-child(4){right:0;bottom:0;border-left:0;border-top:0;border-radius:0 0 3cqw 0}
+.camara .pildora { position:absolute; left:50%; top:80%; transform:translateX(-50%); background:#ffd60a; color:#000; font-weight:600; font-size:4.2cqw; border-radius:99px; padding:2.2cqw 4.5cqw; white-space:nowrap; display:flex; gap:1.6cqw; align-items:center; }
+.camara .barra-cam { position:absolute; left:0; right:0; bottom:0; height:13%; background:#000c; display:flex; justify-content:center; align-items:center; }
+.camara .barra-cam i { width:15cqw; height:15cqw; border-radius:50%; border:1.2cqw solid #fff; box-shadow:inset 0 0 0 1cqw #000, inset 0 0 0 7cqw #fff; }
+.camara .modo { position:absolute; left:0; right:0; bottom:13.5%; text-align:center; color:#ffd60a; font-size:3.4cqw; letter-spacing:.1em; font-weight:600; }
+
+/* Papel */
+.papel { position:relative; max-width:360px; margin:22px auto 4px; background:linear-gradient(#fbf6e9,#f2e9d2); color:#2a2418; border-radius:6px; padding:22px 26px 18px; transform:rotate(-1.2deg);
+  box-shadow:0 20px 40px -14px #000, 0 0 0 1px #0002; font:italic 400 22px/1.5 var(--serif); }
+.papel h4 { margin:0 0 10px; font:600 22px var(--serif); font-style:normal; text-align:center; color:#5b4520; }
+.papel ol { columns:2; margin:0; padding-left:28px; }
+.papel li { border-bottom:1px dashed #b9a77f; padding-left:4px; }
+.papel li::marker { font:600 18px var(--sans); color:#7a6332; }
+.papel .firma { text-align:right; font-size:17px; color:#7a6332; margin-top:10px; }
+.prohibido { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; margin-top:18px; }
+.prohibido span { display:flex; align-items:center; gap:8px; padding:8px 14px; border-radius:14px; border:1px solid rgba(240,160,143,.45); background:rgba(240,160,143,.08); color:var(--rojo); font-size:17px; }
+.prohibido .ico { font-size:24px; }
+
+.reglas { list-style:none; padding:0; margin:0; display:grid; gap:12px; }
+.reglas li { display:flex; gap:14px; align-items:flex-start; background:rgba(255,255,255,.03); border:1px solid var(--linea); border-radius:18px; padding:14px 16px; }
+.reglas .ico { flex:none; font-size:30px; color:var(--oro); margin-top:2px; }
+
+.final { text-align:center; margin-top:48px; }
+.boton { display:inline-block; margin:6px; padding:14px 22px; border-radius:16px; background:var(--oro-grad); color:#1b1408; font-weight:600; text-decoration:none; font-size:19px; }
+.boton.sec { background:transparent; color:var(--oro-claro); border:1px solid var(--linea-fuerte); }
+.pie { text-align:center; color:var(--tenue); font-size:15px; margin-top:28px; }
+
+@media (max-width:420px) { body { font-size:19px; } .portada h1 { font-size:44px; } .cap-cabeza h2 { font-size:36px; } .paso { padding:20px 16px 16px; } .par .tel { --tw:132px; } }
+
+/* PDF / impresión: una página tipo teléfono */
+@page { size:430px 932px; margin:0; }
+@media print {
+  body { font-size:18px; background:var(--noche); -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  body::before { display:none; }
+  main { padding:22px 18px 10px; max-width:none; }
+  .toca { animation:none; }
+  .capitulo { break-before:page; margin-top:0; padding-top:4px; }
+  .tarjeta, .paso { backdrop-filter:none; background:#16131f; }
+  .tel { --tw:206px; margin:12px auto 4px; }
+  .par .tel { --tw:150px; margin:10px 0 4px; }
+  .portada h1, .cap-cabeza h2 { background:none; color:var(--oro-claro); -webkit-text-fill-color:var(--oro-claro); }
+  .cap-cabeza h2 { font-size:32px; margin:6px 0 4px; }
+  .cap-num { width:46px; height:46px; font-size:26px; }
+  .cap-cabeza p { font-size:17px; }
+  .quien { margin-top:6px; font-size:14px; }
+  .cap-cabeza { margin-bottom:4px; }
+  .nota { font-size:16px; padding:10px 14px; }
+  .paso { padding:16px 16px 12px; }
+  .paso p { margin-top:8px; }
+  .tarjeta { padding:16px 18px; margin:12px 0; }
+  .tarjeta h2 { font-size:26px; }
+  .adorno { margin:12px 0; }
+  .portada .sub { font-size:18px; }
+  .frase { margin-bottom:14px; }
+  .papel { font-size:18px; padding:14px 20px 10px; margin-top:12px; }
+  .prohibido { margin-top:10px; } .prohibido span { font-size:15px; padding:5px 10px; }
+  .indice a { padding:9px 14px; font-size:18px; }
+  .no-pdf { display:none !important; }
+  .paso { margin:16px 0; }
+  .paso h3 { font-size:24px; }
+  .portada { padding-top:6px; }
+  .portada img { width:110px; height:110px; }
+  .portada-pdf { break-after:page; }
+  a { text-decoration:none; }
+}
+</style>
+</head>
+<body>
+<main>
+
+<div class="portada-pdf">
+<header class="portada">
+  <img src="sello.svg" alt="">
+  <p class="sigla">QTAM</p>
+  <p class="frase">Que todo el que se acerque a ti…</p>
+  <h1>Guía paso a paso</h1>
+  <p class="sub">Cómo instalar la app en el teléfono, invitar a una persona y cuidar su número. Todo con fotos.</p>
+</header>
+
+<div class="adorno">✦</div>
+
+<div class="tarjeta">
+  <h2>Antes de empezar</h2>
+  <p>La app es una página web: <b>nnarmy.github.io</b>. No se baja de ninguna tienda y no cuesta nada.</p>
+  <p>Se abre en el navegador del teléfono (<b>Safari</b> en iPhone, <b>Chrome</b> en Android) y se deja como un ícono dorado en la pantalla, igual que cualquier otra app.</p>
+  <div class="leyenda" style="margin-top:16px"><span class="mini-toca"></span><p style="margin:0">En las fotos, el <b>recuadro dorado</b> con un punto blanco marca <b>dónde tocar</b>.</p></div>
+</div>
+</div>
+
+<div class="tarjeta">
+  <h2>Qué hay en esta guía</h2>
+  <ol class="indice">
+    <li><a href="#iphone"><span class="n">1</span><span>Instalar la app en iPhone</span></a></li>
+    <li><a href="#android"><span class="n">2</span><span>Instalar la app en Android</span></a></li>
+    <li><a href="#invitar"><span class="n">3</span><span>Invitar a una persona<small>Lo hace usted, que ya tiene número</small></span></a></li>
+    <li><a href="#recibir"><span class="n">4</span><span>La persona nueva recibe su número<small>Lo hace ella en su teléfono</small></span></a></li>
+    <li><a href="#palabras"><span class="n">5</span><span>Guardar las 12 palabras<small>Lo más importante</small></span></a></li>
+    <li><a href="#vacia"><span class="n">6</span><span>iPhone: la app se abrió vacía<small>Cómo pasar su número a la app</small></span></a></li>
+    <li><a href="#badge"><span class="n">7</span><span>Mostrar mi badge</span></a></li>
+    <li><a href="#reglas"><span class="n">✦</span><span>Reglas de oro</span></a></li>
+  </ol>
+</div>
+
+<!-- ============ 1. iPhone ============ -->
+<section class="capitulo" id="iphone">
+  <div class="cap-cabeza"><span class="cap-num">1</span><h2>Instalar en iPhone</h2><p>Se hace una sola vez. Tarda un minuto.</p></div>
+
+  <p class="nota alerta"><b>¿Ya aceptó su número en Safari?</b> Entonces, antes de instalar, haga el <a href="#vacia">capítulo 6, paso 1 y 2</a> (copiar sus 12 palabras). En iPhone la app instalada empieza vacía y ahí las va a pegar.</p>
+
+  <div class="paso">
+    <div class="paso-cab"><span class="paso-n">1</span><h3>Abra Safari y toque «Compartir»</h3></div>
+    <p>Abra <b>Safari</b> (la brújula azul) y escriba <b>nnarmy.github.io</b> en la barra. Cuando cargue la página, toque el botón <b>Compartir</b>: un cuadrito con una flecha hacia arriba, abajo en el centro.</p>
+    <span class="donde">En Safari</span>
+    <div class="tel"><div class="pantalla">
+      <img class="captura" src="guia/inicio.jpg" alt="La página del movimiento abierta en Safari">
+      <div class="isla"></div>
+      <div class="safari-abajo">
+        <div class="safari-url"><span>aA</span><span>🔒 nnarmy.github.io</span><span>↻</span></div>
+        <div class="safari-iconos">
+          <svg class="ico" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>
+          <svg class="ico apag" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg>
+          <svg class="ico" viewBox="0 0 24 24"><path d="M12 3v12M8 7l4-4 4 4M7 10H5.5v10.5h13V10H17"/></svg>
+          <svg class="ico" viewBox="0 0 24 24"><path d="M3.5 5.5c3-1.2 6-1 8.5 1 2.5-2 5.5-2.2 8.5-1v13c-3-1.2-6-1-8.5 1-2.5-2-5.5-2.2-8.5-1zM12 6.5v13"/></svg>
+          <svg class="ico" viewBox="0 0 24 24"><path d="M8 8h12v12H8zM5 16V5h11"/></svg>
+          <i class="toca redondo" style="--x:41%;--y:-6%;--w:18%;--h:112%"></i>
+        </div>
+      </div>
+    </div></div>
+    <p class="tenue">¿No ve ese botón? En los iPhone más nuevos toque los tres puntitos <b>···</b> abajo a la derecha y luego <b>Compartir</b>.</p>
+  </div>
+
+  <div class="paso">
+    <div class="paso-cab"><span class="paso-n">2</span><h3>Toque «Agregar a pantalla de inicio»</h3></div>
+    <p>Se abre una lista. Deslice el dedo hacia arriba hasta ver <b>Agregar a pantalla de inicio</b> y tóquelo.</p>
+    <span class="donde">En Safari</span>
+    <div class="tel"><div class="pantalla velo-gris">
+      <img class="captura" src="guia/inicio.jpg" alt="">
+      <div class="isla"></div>
+      <div class="hoja">
+        <div class="hoja-cab"><img src="icono-180.png" alt=""><div>Movimiento sin nombre<small>nnarmy.github.io</small></div><span class="x">✕</span></div>
+        <div class="apps"><span><i class="c3"></i>AirDrop</span><span><i class="c2"></i>Mensajes</span><span><i class="c8"></i>Mail</span><span><i class="c4"></i>Notas</span><span><i class="c5"></i>Más</span></div>
+        <div class="grupo"><div>Copiar <svg class="ico" viewBox="0 0 24 24"><path d="M8 8h11v12H8zM5 16V4h11"/></svg></div></div>
+        <div class="grupo">
+          <div>Agregar a favoritos <svg class="ico" viewBox="0 0 24 24"><path d="M12 3.5l2.6 5.4 5.9.8-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.8z"/></svg></div>
+          <div>Agregar marcador <svg class="ico" viewBox="0 0 24 24"><path d="M3.5 5.5c3-1.2 6-1 8.5 1 2.5-2 5.5-2.2 8.5-1v13c-3-1.2-6-1-8.5 1-2.5-2-5.5-2.2-8.5-1zM12 6.5v13"/></svg></div>
+          <div>Buscar en la página <svg class="ico" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5l5 5"/></svg></div>
+          <div style="position:relative">Agregar a pantalla de inicio <svg class="ico" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="17" height="17" rx="4"/><path d="M12 8v8M8 12h8"/></svg><i class="toca sin-punto" style="--x:-2%;--y:-8%;--w:104%;--h:116%"></i></div>
+        </div>
+      </div>
+    </div></div>
+    <p class="tenue">En algunos iPhone dice «Añadir a pantalla de inicio». Es lo mismo.</p>
+  </div>
+
+  <div class="paso">
+    <div class="paso-cab"><span class="paso-n">3</span><h3>Toque «Agregar»</h3></div>
+    <p>Arriba a la derecha toque <b>Agregar</b>. Si aparece <b>Abrir como app web</b>, déjelo encendido (en verde).</p>
+    <div class="tel"><div class="pantalla">
+      <div class="isla"></div>
+      <div class="dialogo-ios">
+        <div class="barra"><span class="azul">Cancelar</span><b>Agregar a inicio</b><span class="azul fuerte" style="position:relative">Agregar<i class="toca" style="--x:-30%;--y:-45%;--w:160%;--h:190%"></i></span></div>
+        <div class="caja"><img src="icono-180.png" alt=""><div class="campo">Movimiento<small>nnarmy.github.io</small></div></div>
+        <div class="fila"><span>Abrir como app web</span><span class="interruptor"></span></div>
+        <p class="expl">Un ícono se agregará a tu pantalla de inicio para que puedas acceder rápidamente a este sitio web.</p>
+      </div>
+    </div></div>
+  </div>
+
+  <div class="paso">
+    <div class="paso-cab"><span class="paso-n">4</span><h3>¡Listo! Busque el ícono dorado</h3></div>
+    <p>En su pantalla aparece el ícono <b>Movimiento</b>. De ahora en adelante abra la app <b>siempre desde ese ícono</b>.</p>
+    <div class="tel"><div class="pantalla">
+      <div class="inicio-tel"></div><div class="isla"></div>
+      <div class="estado"><span>9:41</span><span class="der">▂▄▆ <span class="bat"></span></span></div>
+      <div class="rejilla-apps">
+        <span><i class="c1"></i>Calendario</span><span><i class="c6"></i>Fotos</span><span><i class="c5"></i>Cámara</span><span><i class="c4"></i>Notas</span>
+        <span><i class="c3"></i>Clima</span><span><i class="c7"></i>Podcasts</span><span><i class="c10"></i>Mapas</span><span><i class="c9"></i>Música</span>
+        <span class="nuestra"><i></i>Movimiento<b class="toca" style="--x:-8%;--y:-8%;--w:116%;--h:122%;position:absolute"></b></span>
+      </div>
+      <div class="muelle"><i class="c2"></i><i class="c8"></i><i class="c3"></i><i class="c9"></i></div>
+    </div></div>
+    <p class="tenue">Ahora vaya al <a href="#vacia">capítulo 6</a> si la app se abre y dice «Este teléfono todavía no tiene llave».</p>
+  </div>
+</section>
+
+<!-- ============ 2. Android ============ -->
+<section class="capitulo" id="android">
+  <div class="cap-cabeza"><span class="cap-num">2</span><h2>Instalar en Android</h2><p>Samsung, Motorola, Xiaomi y demás. Se hace una sola vez.</p></div>
+
+  <div class="paso">
+    <div class="paso-cab"><span class="paso-n">1</span><h3>Abra Chrome y toque los tres puntitos</h3></div>
+    <p>Abra <b>Chrome</b> y escriba <b>nnarmy.github.io</b> en la barra de arriba. Cuando cargue, toque los <b>tres puntitos ⋮</b> arriba a la derecha.</p>
+    <span class="donde">En Chrome</span>
+    <div class="tel android"><div class="pantalla">
+      <div class="isla"></div>
+      <div class="chrome-arriba">
+        <svg class="ico" viewBox="0 0 24 24" style="font-size:6cqw"><path d="M4 11l8-7 8 7v9h-5v-6H9v6H4z"/></svg>
+        <div class="chrome-url">🔒 nnarmy.github.io</div>
+        <span class="chrome-pest">1</span>
+        <span class="chrome-puntos">⋮<i class="toca redondo" style="--x:-60%;--y:-40%;--w:220%;--h:180%"></i></span>
+      </div>
+      <div class="chrome-pagina"><img src="guia/android-inicio.jpg" alt="La página del movimiento abierta en Chrome"></div>
+    </div></div>
+  </div>
+
+  <div class="paso">
+    <div class="paso-cab"><span class="paso-n">2</span><h3>Toque «Instalar app»</h3></div>
+    <p>En el menú toque <b>Instalar app</b>. En algunos teléfonos dice <b>Agregar a la pantalla principal</b>: es lo mismo.</p>
+    <span class="donde">En Chrome</span>
+    <div class="tel android"><div class="pantalla velo-gris">
+      <div class="isla"></div>
+      <div class="chrome-arriba"><svg class="ico" viewBox="0 0 24 24" style="font-size:6cqw"><path d="M4 11l8-7 8 7v9h-5v-6H9v6H4z"/></svg><div class="chrome-url">🔒 nnarmy.github.io</div><span class="chrome-pest">1</span><span class="chrome-puntos">⋮</span></div>
+      <div class="chrome-pagina"><img src="guia/android-inicio.jpg" alt=""></div>
+      <div class="menu-android">
+        <div class="iconos"><span>→</span><span>☆</span><span>⤓</span><span>ⓘ</span><span>↻</span></div>
+        <div class="it">Nueva pestaña</div>
+        <div class="it">Nueva pestaña de incógnito</div>
+        <div class="it">Historial</div>
+        <div class="it">Descargas</div>
+        <div class="it">Favoritos</div>
+        <div class="it">Compartir…</div>
+        <div class="it">Buscar en la página</div>
+        <div class="it">Traducir…</div>
+        <div class="it"><b style="color:#fff">Instalar app</b><i class="toca sin-punto" style="--x:2%;--y:-4%;--w:96%;--h:108%"></i></div>
+        <div class="it">Configuración</div>
+      </div>
+    </div></div>
+  </div>
+
+  <div class="paso">
+    <div class="paso-cab"><span class="paso-n">3</span><h3>Toque «Instalar»</h3></div>
+    <p>Aparece un aviso con el ícono dorado. Toque <b>Instalar</b>.</p>
+    <div class="tel android"><div class="pantalla velo-gris">
+      <div class="isla"></div>
+      <div class="chrome-arriba"><svg class="ico" viewBox="0 0 24 24" style="font-size:6cqw"><path d="M4 11l8-7 8 7v9h-5v-6H9v6H4z"/></svg><div class="chrome-url">🔒 nnarmy.github.io</div><span class="chrome-pest">1</span><span class="chrome-puntos">⋮</span></div>
+      <div class="chrome-pagina"><img src="guia/android-inicio.jpg" alt=""></div>
+      <div class="dialogo-android">
+        <h4>¿Instalar app?</h4>
+        <div class="app"><img src="icono-192.png" alt=""><div>Movimiento sin nombre<small>nnarmy.github.io</small></div></div>
+        <div class="botones"><span>Cancelar</span><span>Instalar<i class="toca" style="--x:-12%;--y:-15%;--w:124%;--h:130%"></i></span></div>
+      </div>
+    </div></div>
+  </div>
+
+  <div class="paso">
+    <div class="paso-cab"><span class="paso-n">4</span><h3>¡Listo! Ábrala desde el ícono</h3></div>
+    <p>El ícono <b>Movimiento</b> queda en su pantalla. En Android la app ya ve su número: <b>no hay que copiar nada</b>.</p>
+    <div class="tel android"><div class="pantalla">
+      <div class="inicio-tel"></div><div class="isla"></div>
+      <div class="estado"><span>9:41</span><span class="der">▂▄▆ <span class="bat"></span></span></div>
+      <div class="rejilla-apps">
+        <span><i class="c8"></i>Teléfono</span><span><i class="c2"></i>Mensajes</span><span><i class="c6"></i>Galería</span><span><i class="c5"></i>Cámara</span>
+        <span><i class="c3"></i>Clima</span><span><i class="c1"></i>Calendario</span><span><i class="c10"></i>Mapas</span><span><i class="c7"></i>Música</span>
+        <span class="nuestra"><i></i>Movimiento<b class="toca" style="--x:-8%;--y:-8%;--w:116%;--h:122%;position:absolute"></b></span>
+      </div>
+      <div class="muelle"><i class="c8"></i><i class="c2"></i><i class="c4"></i><i class="c5"></i></div>
+    </div></div>
+  </div>
+</section>
+
+<!-- ============ 3. Invitar ============ -->
+<section class="capitulo" id="invitar">
+  <div class="cap-cabeza"><span class="cap-num">3</span><h2>Invitar a una persona</h2><p>Así se registra a alguien nuevo. Mejor en persona, los dos juntos.</p><span class="quien">Lo hace usted, en su teléfono</span></div>
+
+  <div class="paso">
+    <div class="paso-cab"><span class="paso-n">1</span><h3>Toque «Invitar»</h3></div>
+    <p>Abra la app y toque <b>Invitar</b> en la barra de abajo.</p>
+    <div class="tel"><div class="pantalla real"><img class="captura" src="guia/inicio.jpg" alt="Pantalla de inicio de la app"><div class="isla"></div>
+      <i class="toca" style="--x:59.07%;--y:89.15%;--w:18.15%;--h:8.13%"></i></div></div>
+  </div>
+
+  <div class="paso">
+    <div class="paso-cab"><span class="paso-n">2</span><h3>Escriba unas palabras (si quiere)</h3></div>
+    <p>Puede escribirle un mensaje de bienvenida a la persona. <b>No es obligatorio</b>: puede dejarlo en blanco.</p>
+    <div class="tel"><div class="pantalla real"><img class="captura" src="guia/invitar-form.jpg" alt="Pantalla Invitar a alguien"><div class="isla"></div>
+      <i class="toca sin-punto" style="--x:10%;--y:60.34%;--w:80%;--h:13.7%"></i></div></div>
+  </div>
+
+  <div class="paso">
+    <div class="paso-cab"><span class="paso-n">3</span><h3>Toque «Crear invitación»</h3></div>
+    <div class="tel"><div class="pantalla real"><img class="captura" src="guia/invitar-msj.jpg" alt="Botón Crear invitación"><div class="isla"></div>
+      <i class="toca" style="--x:10%;--y:80.67%;--w:80%;--h:7.08%"></i></div></div>
+  </div>
+
+  <div class="paso">
+    <div class="paso-cab"><span class="paso-n">4</span><h3>Muéstrele el código</h3></div>
+    <p>Aparece un <b>código cuadrado</b> (código QR). Muéstreselo a la persona para que lo apunte con la cámara de su teléfono. Lo que ella hace está en el <a href="#recibir">capítulo 4</a>.</p>
+    <div class="tel"><div class="pantalla real"><img class="captura" src="guia/invitar-qr.jpg" alt="Código de invitación"><div class="isla"></div></div></div>
+    <p class="nota">Cada código sirve para <b>una sola persona</b> y dura <b>7 días</b>. Para invitar a otra persona, baje y toque <span class="boton-txt">Crear otra invitación</span>.</p>
+    <p class="nota">¿La persona está lejos? Toque <span class="boton-txt">Copiar enlace</span> y mándeselo por WhatsApp. Ella lo abre y sigue igual desde el paso 2 del capítulo 4.</p>
+  </div>
+</section>
+
+<!-- ============ 4. Recibir ============ -->
+<section class="capitulo" id="recibir">
+  <div class="cap-cabeza"><span class="cap-num">4</span><h2>La persona nueva recibe su número</h2><p>No necesita tener nada instalado. Usted puede ayudarle.</p><span class="quien">Lo hace la persona nueva, en su teléfono</span></div>
+
+  <div class="paso">
+    <div class="paso-cab"><span class="paso-n">1</span><h3>Apunta la cámara al código</h3></div>
+    <p>Abre la <b>cámara normal</b> de su teléfono y la apunta al código que usted le muestra. No hay que tomar foto. Aparece un aviso amarillo con el enlace: <b>lo toca</b>.</p>
+    <span class="donde">Cámara de la persona nueva</span>
+    <div class="tel"><div class="pantalla">
+      <div class="camara">
+        <div class="otro"><img src="guia/invitar-qr.jpg" alt="" style="object-position:0 72%"></div>
+        <div class="marco"><i></i><i></i><i></i><i></i></div>
+        <div class="pildora"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.5 3 14.5 0 18M12 3c-3 3.5-3 14.5 0 18"/></svg>nnarmy.github.io<i class="toca" style="--x:-6%;--y:-22%;--w:112%;--h:144%;border-radius:99px"></i></div>
+        <div class="modo">FOTO</div>
+        <div class="barra-cam"><i></i></div>
+      </div>
+      <div class="isla"></div>
+    </div></div>
+    <p class="tenue">En Android, si la cámara no lee códigos, se usa «Google Lens» o el lector de códigos QR del teléfono.</p>
+  </div>
+
+  <div class="paso">
+    <div class="paso-cab"><span class="paso-n">2</span><h3>Toca «Aceptar mi número»</h3></div>
+    <p>Se abre la página <b>Has sido invitado</b>, con su mensaje si lo escribió. La persona toca <b>Aceptar mi número</b>. No se pide nombre, ni correo, ni dinero.</p>
+    <div class="tel"><div class="pantalla real"><img class="captura" src="guia/unirse.jpg" alt="Pantalla Has sido invitado"><div class="isla"></div>
+      <i class="toca" style="--x:10%;--y:67.97%;--w:80%;--h:7.08%"></i></div></div>
+  </div>
+
+  <div class="paso">
+    <div class="paso-cab"><span class="paso-n">3</span><h3>Espera unos segundos… ¡y ya!</h3></div>
+    <p>Dice «Registrando en la cadena…». A veces tarda hasta <b>un minuto</b>: hay que esperar sin cerrar. Luego aparece su número, que es suyo <b>para siempre</b>.</p>
+    <div class="tel"><div class="pantalla real"><img class="captura" src="guia/unirse-listo.jpg" alt="Bienvenido, ya tiene número"><div class="isla"></div></div></div>
+    <p class="tenue">Los números de las fotos son de ejemplo.</p>
+  </div>
+
+  <div class="paso">
+    <div class="paso-cab"><span class="paso-n">4</span><h3>Enseguida, dos cosas</h3></div>
+    <p><b>Primero:</b> anotar sus 12 palabras en papel (<a href="#palabras">capítulo 5</a>).</p>
+    <p><b>Después:</b> instalar la app. En iPhone, antes de instalar, copiar las 12 palabras (<a href="#vacia">capítulo 6</a>) y después seguir el <a href="#iphone">capítulo 1</a>. En Android, el <a href="#android">capítulo 2</a>.</p>
+  </div>
+</section>
+
+<!-- ============ 5. 12 palabras ============ -->
+<section class="capitulo" id="palabras">
+  <div class="cap-cabeza"><span class="cap-num">5</span><h2>Guardar las 12 palabras</h2><p>Sus 12 palabras son la <b>llave</b> de su número. Si pierde o cambia de teléfono, con ellas lo recupera. Sin ellas, el número se pierde.</p></div>
+
+  <div class="paso">
+    <div class="paso-cab"><span class="paso-n">1</span><h3>Toque «Mi número»</h3></div>
+    <p>En la barra de abajo toque <b>Mi número</b>. Ahí está su badge.</p>
+    <div class="tel"><div class="pantalla real"><img class="captura" src="guia/mio-badge.jpg" alt="Pantalla Mi número"><div class="isla"></div>
+      <i class="toca" style="--x:22.92%;--y:88.57%;--w:18.05%;--h:8.57%"></i></div></div>
+  </div>
+
+  <div class="paso">
+    <div class="paso-cab"><span class="paso-n">2</span><h3>Toque «Ver mis 12 palabras de respaldo»</h3></div>
+    <p>Baje un poco con el dedo hasta ver el botón.</p>
+    <div class="tel"><div class="pantalla real"><img class="captura" src="guia/mio-ver.jpg" alt="Botón Ver mis 12 palabras"><div class="isla"></div>
+      <i class="toca" style="--x:10%;--y:61.87%;--w:80%;--h:7.38%"></i></div></div>
+  </div>
+
+  <div class="paso">
+    <div class="paso-cab"><span class="paso-n">3</span><h3>Escríbalas a mano en un papel</h3></div>
+    <p>Copie las 12 palabras <b>en orden</b>, con su número al lado, tal como se ven. Guarde el papel en un lugar seguro de su casa.</p>
+    <div class="tel"><div class="pantalla real"><img class="captura" src="guia/mio-palabras.jpg" alt="Las 12 palabras en pantalla"><div class="isla"></div>
+      <i class="toca sin-punto" style="--x:6.5%;--y:27.5%;--w:72%;--h:30%"></i></div></div>
+    <div class="papel">
+      <h4>Mis 12 palabras</h4>
+      <ol><li>&nbsp;</li><li>&nbsp;</li><li>&nbsp;</li><li>&nbsp;</li><li>&nbsp;</li><li>&nbsp;</li><li>&nbsp;</li><li>&nbsp;</li><li>&nbsp;</li><li>&nbsp;</li><li>&nbsp;</li><li>&nbsp;</li></ol>
+      <p class="firma">Número: #______</p>
+    </div>
+    <div class="prohibido">
+      <span><svg class="ico" viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/><path d="M3 3l18 18"/></svg>Nunca foto</span>
+      <span><svg class="ico" viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z"/><path d="M3 3l18 18"/></svg>Nunca por WhatsApp</span>
+      <span><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/><path d="M3 3l18 18"/></svg>Nunca a nadie</span>
+    </div>
+    <p class="tenue" style="text-align:center">Las palabras de la foto son de ejemplo. Las suyas son otras.</p>
+  </div>
+
+  <div class="paso">
+    <div class="paso-cab"><span class="paso-n">4</span><h3>Toque «Ya las anoté en papel»</h3></div>
+    <div class="tel"><div class="pantalla real"><img class="captura" src="guia/mio-yaanote.jpg" alt="Botón Ya las anoté en papel"><div class="isla"></div>
+      <i class="toca" style="--x:10%;--y:62.21%;--w:80%;--h:7.08%"></i></div></div>
+  </div>
+
+  <div class="paso">
+    <div class="paso-cab"><span class="paso-n">5</span><h3>Compruebe dos palabras</h3></div>
+    <p>La app le pregunta dos de sus palabras (por ejemplo la número 6 y la 7). Mire su papel, escríbalas y toque <b>Comprobar</b>. Si sale «Perfecto», terminó.</p>
+    <div class="tel"><div class="pantalla real"><img class="captura" src="guia/mio-comprobar.jpg" alt="Comprobar dos palabras"><div class="isla"></div>
+      <i class="toca" style="--x:10%;--y:62.16%;--w:80%;--h:7.08%"></i></div></div>
+  </div>
+</section>
+
+<!-- ============ 6. iPhone vacía ============ -->
+<section class="capitulo" id="vacia">
+  <div class="cap-cabeza"><span class="cap-num">6</span><h2>iPhone: la app se abrió vacía</h2><p>Solo pasa en iPhone. <b>Su número no se perdió.</b></p></div>
+
+  <div class="tarjeta">
+    <p>En iPhone, <b>Safari</b> y la <b>app del ícono</b> guardan las cosas por separado. Si aceptó su número en Safari, la app nueva no lo ve y dice «Este teléfono todavía no tiene llave».</p>
+    <p>Se arregla pasando las 12 palabras de Safari a la app. Son 5 toques:</p>
+  </div>
+
+  <div class="paso">
+    <div class="paso-cab"><span class="paso-n">1</span><h3>En Safari, toque «Mi número»</h3></div>
+    <p>Abra <b>Safari</b> (no la app), entre a <b>nnarmy.github.io</b> y toque <b>Mi número</b> abajo. Ahí sí está su número.</p>
+    <span class="donde">En Safari</span>
+    <div class="tel"><div class="pantalla real"><img class="captura" src="guia/mio-badge.jpg" alt="Mi número en Safari"><div class="isla"></div>
+      <i class="toca" style="--x:22.92%;--y:88.57%;--w:18.05%;--h:8.57%"></i></div></div>
+  </div>
+
+  <div class="paso">
+    <div class="paso-cab"><span class="paso-n">2</span><h3>Toque «Copiar mis 12 palabras»</h3></div>
+    <p>Baje un poco hasta el recuadro «Pasar tu número a la app del iPhone» y toque <b>Copiar mis 12 palabras</b>. El botón cambia a <b>Copiadas ✓</b>.</p>
+    <span class="donde">En Safari</span>
+    <div class="par">
+      <div class="tel"><div class="pantalla real"><img class="captura" src="guia/mio-copiar.jpg" alt="Botón Copiar mis 12 palabras"><div class="isla"></div>
+        <i class="toca" style="--x:10%;--y:46.39%;--w:80%;--h:7.08%"></i></div></div>
+      <div class="tel"><div class="pantalla real"><img class="captura" src="guia/mio-copiado.jpg" alt="Copiadas"><div class="isla"></div>
+        <i class="toca sin-punto" style="--x:10%;--y:46.39%;--w:80%;--h:9.34%;border-color:#a8e0b0;box-shadow:0 0 22px rgba(168,224,176,.7)"></i></div></div>
+    </div>
+  </div>
+
+  <div class="paso">
+    <div class="paso-cab"><span class="paso-n">3</span><h3>Abra la app y toque «Pegar»</h3></div>
+    <p>Cierre Safari y abra la <b>app del ícono dorado</b>. Toque <b>Mi número</b>. La app ya le muestra la cajita para recuperar. Toque <b>Pegar</b>.</p>
+    <span class="donde">En la app</span>
+    <div class="tel"><div class="pantalla real"><img class="captura" src="guia/app-vacia.jpg" alt="La app vacía con el botón Pegar"><div class="isla"></div>
+      <i class="toca" style="--x:10%;--y:49.23%;--w:80%;--h:7.38%"></i></div></div>
+    <p class="tenue">Si el iPhone pregunta «¿Permitir pegar?», toque <b>Permitir pegar</b>.</p>
+  </div>
+
+  <div class="paso">
+    <div class="paso-cab"><span class="paso-n">4</span><h3>Toque «Recuperar»</h3></div>
+    <p>Las 12 palabras aparecen dentro de la caja. Toque <b>Recuperar</b>.</p>
+    <span class="donde">En la app</span>
+    <div class="tel"><div class="pantalla real"><img class="captura" src="guia/app-pegado.jpg" alt="Palabras pegadas y botón Recuperar"><div class="isla"></div>
+      <i class="toca" style="--x:9.58%;--y:60.16%;--w:76.66%;--h:7.07%"></i></div></div>
+  </div>
+
+  <div class="paso">
+    <div class="paso-cab"><span class="paso-n">5</span><h3>¡Listo! Ahí está su número</h3></div>
+    <p>La app ya muestra su badge. Desde ahora use siempre la app del ícono.</p>
+    <span class="donde">En la app</span>
+    <div class="tel"><div class="pantalla real"><img class="captura" src="guia/app-recuperado.jpg" alt="Número recuperado en la app"><div class="isla"></div></div></div>
+    <p class="nota">¿«Pegar» no funcionó? Mantenga el dedo dentro de la caja y elija <b>Pegar</b>. O escriba las 12 palabras de su papel, separadas por un espacio.</p>
+    <p class="nota">¿Perdió o cambió de teléfono? Es igual: en el teléfono nuevo abra <b>Mi número → Recuperar con mis 12 palabras</b>, escriba las palabras de su papel y toque <b>Recuperar</b>.</p>
+  </div>
+</section>
+
+<!-- ============ 7. Badge ============ -->
+<section class="capitulo" id="badge">
+  <div class="cap-cabeza"><span class="cap-num">7</span><h2>Mostrar mi badge</h2><p>Para que otro miembro compruebe que usted de verdad tiene su número.</p></div>
+  <div class="paso">
+    <div class="paso-cab"><span class="paso-n">1</span><h3>Toque «Mi badge»</h3></div>
+    <p>Aparece un código que <b>cambia cada 20 segundos</b>. La otra persona lo escanea con la pestaña <b>Escanear</b> de su app (el botón del centro, abajo) y su teléfono le dice «Verificado».</p>
+    <div class="tel"><div class="pantalla real"><img class="captura" src="guia/probar.jpg" alt="Mostrar mi badge"><div class="isla"></div>
+      <i class="toca" style="--x:77.08%;--y:88.57%;--w:18.05%;--h:8.57%"></i></div></div>
+    <p class="tenue">Una foto del código no sirve: por eso cambia solo. Así nadie puede hacerse pasar por usted.</p>
+  </div>
+</section>
+
+<!-- ============ Reglas ============ -->
+<section class="capitulo" id="reglas">
+  <div class="cap-cabeza"><span class="cap-num">✦</span><h2>Reglas de oro</h2></div>
+  <ul class="reglas">
+    <li><svg class="ico" viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6z"/><path d="M9 10h7M9 14h7M9 18h4"/></svg><span>Sus <b>12 palabras</b> van solo en <b>papel</b>. Nunca foto, nunca WhatsApp, nunca correo.</span></li>
+    <li><svg class="ico" viewBox="0 0 24 24"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/><path d="M9 9l6 6M15 9l-6 6"/></svg><span><b>Nadie</b> del movimiento le va a pedir jamás sus 12 palabras. Si alguien se las pide, es un engaño.</span></li>
+    <li><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/></svg><span><b>Una persona, un número.</b> Cada invitación sirve para una sola persona y dura 7 días.</span></li>
+    <li><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M5.6 5.6l12.8 12.8"/></svg><span><b>No cuesta nada</b> y no se vende nada. No es una criptomoneda ni una inversión.</span></li>
+    <li><svg class="ico" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M12 8l1.2 2.8L16 12l-2.8 1.2L12 16l-1.2-2.8L8 12l2.8-1.2z"/></svg><span>Abra la app <b>siempre desde el ícono dorado</b> de su pantalla.</span></li>
+  </ul>
+
+  <div class="final">
+    <p style="font:italic 400 26px/1.3 var(--serif); color:var(--oro-claro)">Que todo el que se acerque a ti…</p>
+    <div class="no-pdf">
+      <a class="boton" href="./">Abrir la app</a>
+      <a class="boton sec" href="guia.pdf" download>Bajar esta guía en PDF</a>
+      <p class="pie"><a href="manual.html">Manual completo del miembro</a></p>
+    </div>
+    <p class="pie">nnarmy.github.io/guia.html</p>
+  </div>
+</section>
+
+</main>
+</body>
+</html>

@@ -1,3 +1,3 @@
-CID: bafybeievx7topvvlddsdp2cf5jggqbimdztwtom6iqlgwlr5f6e7hvv6w4
-Copia: https://bafybeievx7topvvlddsdp2cf5jggqbimdztwtom6iqlgwlr5f6e7hvv6w4.ipfs.dweb.link/
-Otra puerta: https://ipfs.io/ipfs/bafybeievx7topvvlddsdp2cf5jggqbimdztwtom6iqlgwlr5f6e7hvv6w4/
+CID: bafybeicbyywjylg7atmllgs7mocckvqtdpbfila7urzuqvmwoqqhbworuu
+Copia: https://bafybeicbyywjylg7atmllgs7mocckvqtdpbfila7urzuqvmwoqqhbworuu.ipfs.dweb.link/
+Otra puerta: https://ipfs.io/ipfs/bafybeicbyywjylg7atmllgs7mocckvqtdpbfila7urzuqvmwoqqhbworuu/

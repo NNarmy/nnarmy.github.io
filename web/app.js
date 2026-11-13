@@ -84,7 +84,19 @@ function msg(el, texto, tipo = "") { el.insertAdjacentHTML("beforeend", `<p clas
 const LLAVE = "movimiento.llave";
 function leerLlave() { try { const f = localStorage.getItem(LLAVE); return f ? ethers.Wallet.fromPhrase(f) : null; } catch { return null; } }
 function crearLlave() { const w = ethers.Wallet.createRandom(); localStorage.setItem(LLAVE, w.mnemonic.phrase); return w; }
-function importarLlave(frase) { const w = ethers.Wallet.fromPhrase(frase.trim().toLowerCase()); localStorage.setItem(LLAVE, w.mnemonic.phrase); return w; }
+// Limpia lo que pega o escribe la persona: mayúsculas, números ("1."), comas, saltos de línea, tildes, autocorrector.
+const limpiarFrase = (t) => String(t).normalize("NFKD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z]+/g, " ").trim();
+function importarLlave(frase) { const w = ethers.Wallet.fromPhrase(limpiarFrase(frase)); localStorage.setItem(LLAVE, w.mnemonic.phrase); return w; }
+// Explica por qué no sirven unas palabras (cuántas son, cuáles no existen).
+function problemaFrase(frase) {
+  const p = limpiarFrase(frase).split(" ").filter(Boolean);
+  if (p.length !== 12) return T(`Escribiste ${p.length} palabras; deben ser 12.`);
+  const malas = p.filter((x) => ethers.wordlists.en.getWordIndex(x) < 0);
+  if (malas.length) return T(`Revisa estas palabras, no están bien escritas: ${malas.join(", ")}.`);
+  return T("Las 12 palabras existen, pero alguna está cambiada o fuera de orden. Revísalas con tu papel.");
+}
+const esIOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+const esApp = () => matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
 
 const RESPALDO = "movimiento.respaldo";
 const respaldoConfirmado = (w) => { try { return localStorage.getItem(RESPALDO) === w.address; } catch { return false; } };
@@ -158,7 +170,10 @@ const vistas = {
     if (n) {
       el.innerHTML = `<div class="badge centro"><img alt="Badge ${n}" src="${await imagenBadge(n)}"></div>
         <p class="centro">Eres el <b>#${n}</b>.</p>
-        ${matchMedia("(display-mode: standalone)").matches ? "" : `<p class="tenue">Consejo: agrega esta página a tu pantalla de inicio (iPhone: compartir → "Agregar a pantalla de inicio"; Android: menú ⋮ → "Instalar app") para que tu llave no se borre.</p>`}`;
+        ${esApp() ? "" : esIOS ? `<div class="bloque"><h3>Pasar tu número a la app del iPhone</h3>
+          <p class="tenue">En iPhone, la app que agregas a la pantalla de inicio no ve lo que guardó Safari. Para llevar tu número:</p>
+          <ol class="tenue"><li>Toca <b>Copiar mis 12 palabras</b>.</li><li>Agrega esta página a tu pantalla de inicio (compartir → "Agregar a pantalla de inicio").</li><li>Abre la app → <b>Mi número</b> → <b>Recuperar con mis 12 palabras</b> → <b>Pegar</b> → <b>Recuperar</b>.</li></ol>
+          <button id="copiar-frase">Copiar mis 12 palabras</button></div>` : `<p class="tenue">Consejo: agrega esta página a tu pantalla de inicio (iPhone: compartir → "Agregar a pantalla de inicio"; Android: menú ⋮ → "Instalar app") para que tu llave no se borre.</p>`}`;
     } else if (w) {
       el.innerHTML = `<p>Este teléfono tiene una llave, pero todavía no tiene número. Pide a un miembro que te invite.</p>`;
     } else {
@@ -169,10 +184,15 @@ const vistas = {
         <button class="secundario" id="ver-frase">Ver mis 12 palabras de respaldo</button><div id="frase"></div>`;
     }
     el.innerHTML += `<details style="margin-top:16px"><summary class="tenue">Recuperar con mis 12 palabras</summary>
-      <textarea id="frase-in" rows="3" placeholder="palabra palabra palabra…"></textarea>
+      <textarea id="frase-in" rows="3" placeholder="palabra palabra palabra…" autocapitalize="none" autocorrect="off" autocomplete="off" spellcheck="false"></textarea>
+      ${navigator.clipboard?.readText ? `<button class="secundario" id="pegar-frase">Pegar</button>` : ""}
       <button class="secundario" id="importar">Recuperar</button></details>
       ${w ? "" : `<button class="secundario" id="crear">Crear una llave (para fundadores)</button>`}`;
-    $("importar").onclick = () => { try { importarLlave($("frase-in").value); vistas.mio(); } catch { msg(el, "Esas palabras no son válidas.", "error"); } };
+    $("importar").onclick = () => { const f = $("frase-in").value; try { importarLlave(f); vistas.mio(); } catch { msg(el, problemaFrase(f), "error"); } };
+    if ($("pegar-frase")) $("pegar-frase").onclick = async () => { try { $("frase-in").value = await navigator.clipboard.readText(); } catch { msg(el, "No se pudo pegar. Mantén el dedo en la caja y elige Pegar.", "error"); } };
+    if ($("copiar-frase")) $("copiar-frase").onclick = (e) => navigator.clipboard?.writeText(w.mnemonic.phrase).then(() => (e.target.textContent = T("Copiadas ✓ Ahora abre la app y pégalas")));
+    if (!w && esIOS && esApp()) { el.querySelector("details").open = true;
+      el.querySelector("details").insertAdjacentHTML("beforebegin", `<p class="msg">¿Aceptaste tu número en Safari? La app no ve lo de Safari: abre la página en Safari, ve a <b>Mi número</b>, toca <b>Copiar mis 12 palabras</b> y vuelve aquí a tocar <b>Pegar</b> y <b>Recuperar</b>.</p>`); }
     if ($("crear")) $("crear").onclick = () => { crearLlave(); vistas.mio(); };
     // Los manejadores se ponen al final: innerHTML += borra los que se pusieron antes.
     if (w) $("ver-frase").onclick = () => {
@@ -253,7 +273,8 @@ const vistas = {
         el.innerHTML = `<div class="badge centro"><img alt="Badge" src="${await imagenBadge(res.numero)}"></div>
           <p class="centro">Bienvenido. Eres el <b>#${res.numero}</b>.</p>
           <p class="tenue">Ahora ve a "Mi número" y guarda tus 12 palabras de respaldo en papel.</p>
-          <p class="tenue">Y agrega esta página a tu pantalla de inicio (en iPhone: botón compartir → "Agregar a pantalla de inicio"; en Android: menú ⋮ → "Instalar app"). Así tu llave no se borra.</p>`;
+          ${esIOS && !esApp() ? `<p class="msg">En iPhone, antes de agregar la página a la pantalla de inicio ve a <b>Mi número</b> y toca <b>Copiar mis 12 palabras</b>: la app instalada no ve lo de Safari y ahí las pegas.</p>`
+            : `<p class="tenue">Y agrega esta página a tu pantalla de inicio (en iPhone: botón compartir → "Agregar a pantalla de inicio"; en Android: menú ⋮ → "Instalar app"). Así tu llave no se borra.</p>`}`;
       } catch (err) {
         e.target.disabled = false; e.target.textContent = "Intentar de nuevo";
         msg(el, `No se pudo registrar: ${err.message}.`, "error");

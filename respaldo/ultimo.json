@@ -1,8 +1,8 @@
 {
   "contrato": "0x8c6ACA8E53BaA96627DFF40552B5f328dCA8F230",
   "chainId": 8453,
-  "bloque": 56120636,
-  "siguienteNumero": 1315,
+  "bloque": 58094682,
+  "siguienteNumero": 1326,
   "miembros": [
     {
       "numero": 1313,
@@ -11,6 +11,54 @@
     {
       "numero": 1314,
       "cuenta": "0x62B8925dd39E52097c1CC301cEf625a347E97803"
+    },
+    {
+      "numero": 1,
+      "cuenta": "0xCf072951695A041FBBA00B76C6CAcA45b991B095"
+    },
+    {
+      "numero": 1315,
+      "cuenta": "0xd3727997bcAB6C2529D8f7960cff2f875C47474a"
+    },
+    {
+      "numero": 1316,
+      "cuenta": "0x830f19e4E4f01F2ba1BF51125733De69681cA31c"
+    },
+    {
+      "numero": 1317,
+      "cuenta": "0xE40c61079140DfFFC3cD18B036bc01c0c44587a8"
+    },
+    {
+      "numero": 1318,
+      "cuenta": "0xa0E0a01E91066Ca69F936306b2Aa891e0a3b856E"
+    },
+    {
+      "numero": 1319,
+      "cuenta": "0xfe6789BaD8798cd735ACA0d2D3f6D26255Fcb45D"
+    },
+    {
+      "numero": 1320,
+      "cuenta": "0x2A16485C8fb6bF856652Ec2d874e69dBB953AAcc"
+    },
+    {
+      "numero": 1321,
+      "cuenta": "0xf1b37f1AF0B8B91F0F9571CBaA019D848c482d2C"
+    },
+    {
+      "numero": 1322,
+      "cuenta": "0x5bf595db4B314BE5823350c96DD0C722eaFC4845"
+    },
+    {
+      "numero": 1323,
+      "cuenta": "0x98632E110fAf2512Ab9e2eaabC36C162E1be4210"
+    },
+    {
+      "numero": 1324,
+      "cuenta": "0xe39ae44bcdF404E104a02286DBbB42a54d1E72F4"
+    },
+    {
+      "numero": 1325,
+      "cuenta": "0xA0f4c15F7c4A47E71Aa4D90c1DAa1eA6b4Df9e68"
     }
   ]
 }

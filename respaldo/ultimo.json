@@ -1,8 +1,8 @@
 {
   "contrato": "0x8c6ACA8E53BaA96627DFF40552B5f328dCA8F230",
   "chainId": 8453,
-  "bloque": 58094682,
-  "siguienteNumero": 1326,
+  "bloque": 61312714,
+  "siguienteNumero": 1327,
   "miembros": [
     {
       "numero": 1313,
@@ -59,6 +59,10 @@
     {
       "numero": 1325,
       "cuenta": "0xA0f4c15F7c4A47E71Aa4D90c1DAa1eA6b4Df9e68"
+    },
+    {
+      "numero": 1326,
+      "cuenta": "0x6e0640d246b1624f823eFe065d8c74Ef627E36B2"
     }
   ]
 }
